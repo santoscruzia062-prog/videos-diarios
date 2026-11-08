@@ -65,6 +65,7 @@ e o `historico.md` inteiros antes de criar qualquer coisa, e atualize o `histori
 - `autoPublish: true`, `draft: false`. Data no formato `2026-11-09T07:00:00-03:00` e
   `publicationDate: {dateTime, timezone: "America/Sao_Paulo"}`.
 - Antes de agendar, confira com `getScheduledPosts` se o horário já não tem post (evitar duplicar).
+  Rascunhos (`draft: true`) não publicam e não ocupam horário — ignore-os.
 - Se o Metricool recusar por limite do plano ou outro erro: não insista em loop; registre no
   `historico.md` e no resumo final.
 
