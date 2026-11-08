@@ -5,8 +5,8 @@ dos últimos 7 dias.
 
 | Data | Horário | Formato | Tema | Formato da arena | Resultado |
 |---|---|---|---|---|---|
-| 2026-11-08 | 20h | duelo (arena.py) | 🦈 TUBARÃO vs 🐊 JACARÉ | pentágono | a agendar |
-| 2026-11-08 | 16h | batalha royale (royale_times.py) | 8 times brasileiros | círculo | a agendar |
+| 2026-11-08 | 20h | duelo (arena.py) | 🦈 TUBARÃO vs 🐊 JACARÉ (tubarão 339 x 312) | pentágono | agendado |
+| 2026-11-08 | 16h | batalha royale (royale_times.py) | 8 times brasileiros (Vasco campeão) | círculo | agendado |
 | 2026-11-08 | 13h | batalha royale (royale.py) | 8 países (BR campeão) | círculo | agendado |
 | 2026-11-08 | 11h26 | duelo | 🦁 LEÃO vs 🐺 LOBO | octógono | publicado |
 | 2026-11-07 | — | duelos feitos (alguns postados manualmente pelo dono) | ☀️ SOL vs 🌚 LUA, 😍 AMOR vs 👿 ÓDIO, 🐶 CACHORRO vs 🐱 GATO, ⚽ FUTEBOL vs 🏀 BASQUETE, 💎 DIAMANTE vs 🪙 OURO, 🍕 PIZZA vs 🍔 HAMBÚRGUER | estrela, coração, quadrado, círculo, losango, retângulo | — |
