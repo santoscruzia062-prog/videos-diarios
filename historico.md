@@ -22,6 +22,23 @@ dos últimos 7 dias.
 | 2026-11-07 | — | multiplicação | 🤑 dinheiro; ❤️ corações; bolinhas coloridas | quadrado; círculo | — |
 
 ## Referências do dono (PRIORIDADE — usar 2–3 por noite, misturando com o nosso estilo)
+**FAZER NA NOITE DE 09/11 (1 dos 8 vídeos, pedido do dono): 🇺🇸 USA vs BRAZIL 🇧🇷 — duelo com itens.**
+Código novo (ex.: `motor/duelo_itens.py`, pode reaproveitar partes de `arena.py`/`bolas.py`):
+- Círculo com linha branca fina, fundo azul-marinho escuro com grade sutil.
+- 2 bolões-personagem com a BANDEIRA (emoji 🇺🇸 / 🇧🇷 da Noto Color Emoji) e anel colorido
+  (azul/vermelho x verde/amarelo) quicando pela arena.
+- Topo: "USA vs BRAZIL" + 2 BARRAS DE VIDA com a bandeira em cada ponta.
+- A cada ~4 s aparece um ITEM num anel brilhante (espinho, espada de brinquedo, escudo, ímã,
+  raio). Quem encosta pega → aviso grande "BRAZIL GOT THE SPIKE!" / "USA GOT THE SHIELD!".
+  Com item, o choque tira vida do outro; dano = faíscas/confete na cor do time (NADA de sangue,
+  NADA de arma de fogo realista).
+- Quem acerta solta bolinhas da sua cor (multiplica) → arena vai lotando nas duas cores.
+- Vida bem disputada, vira no final; quem zera perde → explosão de confete na cor do vencedor,
+  "BRAZIL WINS!" / "USA WINS!", "Who were you rooting for? 👇", "Follow for more!".
+- Tudo em inglês. Legenda: "🇺🇸 USA vs BRAZIL 🇧🇷 Who wins this battle? …" #usavsbrazil #battle #satisfying
+- NUNCA usar pessoas reais / políticos / fotos de gente (o dono pediu Lula/Trump/Flávio e eu recusei:
+  risco de denúncia e remoção). Só bandeiras, animais, elementos ou cores.
+
 Ref. 2 (canal de física "satisfying", 08/11): fundo azul-marinho bem escuro, círculo com linha
 branca fina, peças METÁLICAS cinza com sombra (visual de máquina/laboratório), bolinhas PEQUENAS
 (raio ~4–5) e poucas no começo, contador = só um NÚMERO grande no topo (sem texto).
