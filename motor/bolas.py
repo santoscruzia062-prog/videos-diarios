@@ -58,6 +58,14 @@ def shape_pts(kind, cy=650):
         x = x - (x.max() + x.min()) / 2 + 360
         y = y - (y.max() + y.min()) / 2 + cy + 10
         return list(zip(x, y))
+    if kind == "pentagon":
+        return poly_regular(5, 268, 360, cy + 30, -math.pi / 2)
+    if kind == "star":
+        R1, R2 = 345, 175
+        return [(360 + (R1 if k % 2 == 0 else R2) * math.cos(-math.pi / 2 + k * math.pi / 5),
+                 cy + 40 + (R1 if k % 2 == 0 else R2) * math.sin(-math.pi / 2 + k * math.pi / 5)) for k in range(10)]
+    if kind == "diamond":
+        return [(360, cy - 390), (680, cy), (360, cy + 390), (40, cy)]
     if kind == "rounded":
         pts = []
         r = 90; x0, x1, y0, y1 = 50, 670, cy - 330, cy + 330
@@ -295,6 +303,130 @@ class Rods:
             cv2.circle(img, P(p), int(5 * SH), (50, 45, 50), -1, cv2.LINE_AA, 4)
 
 
+class Pieces:
+    """Peças metálicas genéricas (polígonos com espessura) que GIRAM sempre no mesmo sentido em
+    torno de um pivô e/ou BATEM como prensa (vai até o centro rápido e volta devagar).
+    Serve para: rotor de pás em cunha, moldura retangular, quadrado vazado, hastes em T, prensas.
+    Cada peça: pts (coordenadas locais), closed, fill, off (pivô), w (rad/s), phase,
+    press=dict(dir=(dx,dy), amp, period, ph) opcional, th (espessura do contorno)."""
+    kind = "rods"
+
+    def __init__(self, C, pieces, col=(185, 188, 195), hub=True):
+        self.C = np.array(C, float); self.pieces = pieces; self.col = col; self.hub = hub
+        self.th = 12.0
+        self.p0 = self.C + np.array([0.0, -60.0])
+
+    @staticmethod
+    def press_d(pr, t):
+        u = ((t / pr["period"]) + pr.get("ph", 0.0)) % 1.0
+        if u < 0.22:
+            x = (u / 0.22) ** 2
+        elif u < 0.34:
+            x = 1.0
+        else:
+            x = 1 - (u - 0.34) / 0.66
+            x = x * x * (3 - 2 * x)
+        return pr["amp"] * x
+
+    def world(self, pc, t):
+        a = pc.get("phase", 0.0) + pc.get("w", 0.0) * t
+        R = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
+        pv = self.C + np.array(pc.get("off", (0, 0)), float)
+        tr = np.zeros(2); vt = np.zeros(2)
+        if "press" in pc:
+            pr = pc["press"]; dv = np.array(pr["dir"], float); dv /= np.linalg.norm(dv)
+            d0 = self.press_d(pr, t); d1 = self.press_d(pr, t + 0.004)
+            tr = dv * d0; vt = dv * (d1 - d0) / 0.004
+        pts = pv + tr + (R @ np.array(pc["pts"], float).T).T
+        return pts, pv + tr, vt, pc.get("w", 0.0)
+
+    def segs(self, t):
+        out = []
+        for pc in self.pieces:
+            pts, pv, vt, w = self.world(pc, t)
+            out.append((pts[0], pts[1], pv, w if w else 1.0))
+        return out
+
+    def collide(self, pos, prev, mask, RB, t):
+        hit_all = np.zeros(len(pos), bool)
+        for pc in self.pieces:
+            pts, pv, vt, w = self.world(pc, t)
+            th = pc.get("th", self.th)
+            lim = RB + th / 2
+            n = len(pts); ns = n if pc.get("closed", True) else n - 1
+            best = np.full(len(pos), 1e9); bcp = np.zeros_like(pos)
+            for k in range(ns):
+                a, b = pts[k], pts[(k + 1) % n]
+                ab = b - a; L2 = ab @ ab + 1e-9
+                s_ = np.clip(((pos - a) @ ab) / L2, 0, 1)
+                cp = a + s_[:, None] * ab
+                dd = np.linalg.norm(pos - cp, axis=1)
+                m = dd < best
+                best[m] = dd[m]; bcp[m] = cp[m]
+            inside = np.zeros(len(pos), bool)
+            if pc.get("fill") and pc.get("closed", True):
+                x, y = pos[:, 0], pos[:, 1]
+                for k in range(n):
+                    a, b = pts[k], pts[(k + 1) % n]
+                    c1 = (a[1] > y) != (b[1] > y)
+                    xint = (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1] + 1e-9) + a[0]
+                    inside ^= c1 & (x < xint)
+            hit = mask & ((best < lim) | inside)
+            if hit.any():
+                d = pos[hit] - bcp[hit]; dist = np.maximum(np.linalg.norm(d, axis=1), 1e-4)
+                nrm = d / dist[:, None]
+                ins = inside[hit]
+                nrm[ins] = -nrm[ins]
+                pos[hit] = bcp[hit] + nrm * lim
+                r = bcp[hit] - pv
+                vs = w * np.stack([-r[:, 1], r[:, 0]], 1) + vt
+                vv = (pos[hit] - prev[hit]) / DT
+                vn = (vv * nrm).sum(1, keepdims=True)
+                vv = vv + nrm * np.maximum(0, (vs * nrm).sum(1, keepdims=True) * 1.2 - vn)
+                prev[hit] = pos[hit] - vv * DT
+            hit_all |= mask & (best < lim + 2)
+        return hit_all
+
+    def draw(self, img, t, glowk=0.0):
+        col = self.col
+        dark = tuple(int(c * 0.45) for c in col); lite = tuple(min(255, c + 50) for c in col)
+        for pc in self.pieces:
+            pts, pv, vt, w = self.world(pc, t)
+            th = pc.get("th", self.th)
+            if "press" in pc:      # haste da prensa (vem da borda)
+                pr = pc["press"]; dv = np.array(pr["dir"], float); dv /= np.linalg.norm(dv)
+                base = self.C + np.array(pc.get("off", (0, 0)), float) - dv * 60
+                ctr = pts.mean(0)
+                cv2.line(img, P(base + np.array([6, 8])), P(ctr + np.array([6, 8])), (0, 0, 0), 22, cv2.LINE_AA, 4)
+                cv2.line(img, P(base), P(ctr), dark, 22, cv2.LINE_AA, 4)
+                cv2.line(img, P(base), P(ctr), col, 14, cv2.LINE_AA, 4)
+            ip = (pts * SH).astype(np.int32)
+            sh = ((pts + np.array([6, 8])) * SH).astype(np.int32)
+            closed = pc.get("closed", True)
+            if pc.get("fill"):
+                cv2.fillPoly(img, [sh], (0, 0, 0), cv2.LINE_AA, 4)
+                cv2.polylines(img, [sh], True, (0, 0, 0), int(th), cv2.LINE_AA, 4)
+                cv2.polylines(img, [ip], True, dark, int(th + 3), cv2.LINE_AA, 4)
+                cv2.fillPoly(img, [ip], col, cv2.LINE_AA, 4)
+                cv2.polylines(img, [ip], True, col, int(th), cv2.LINE_AA, 4)
+                cen = pts.mean(0)
+                inner = ((cen + (pts - cen) * 0.72) * SH).astype(np.int32)
+                cv2.polylines(img, [inner], True, lite, 2, cv2.LINE_AA, 4)
+            else:
+                cv2.polylines(img, [sh], closed, (0, 0, 0), int(th + 2), cv2.LINE_AA, 4)
+                cv2.polylines(img, [ip], closed, dark, int(th + 4), cv2.LINE_AA, 4)
+                cv2.polylines(img, [ip], closed, col, int(th), cv2.LINE_AA, 4)
+                cv2.polylines(img, [ip], closed, lite, 2, cv2.LINE_AA, 4)
+                if not closed:
+                    for e in (pts[0], pts[-1]):
+                        cv2.circle(img, P(e), int(th / 2 * SH), col, -1, cv2.LINE_AA, 4)
+        if self.hub:
+            cv2.circle(img, P(self.C + np.array([5, 7])), int(24 * SH), (0, 0, 0), -1, cv2.LINE_AA, 4)
+            cv2.circle(img, P(self.C), int(24 * SH), dark, -1, cv2.LINE_AA, 4)
+            cv2.circle(img, P(self.C), int(20 * SH), col, -1, cv2.LINE_AA, 4)
+            cv2.circle(img, P(self.C), int(7 * SH), dark, -1, cv2.LINE_AA, 4)
+
+
 class Bounce:
     """Sem mecanismo: a bolinha quica na borda e cada batida multiplica."""
     kind = "bounce"
@@ -326,6 +458,8 @@ def simulate(cfg, seed, keep=True):
         mech = Rods(C, **cfg["rods"])
     elif cfg["mech"] == "bounce":
         mech = Bounce(C)
+    elif cfg["mech"] == "pieces":
+        mech = Pieces(C, **cfg["pieces"])
     else:
         mech = Arcs(C, **cfg.get("arcs", {}))
     free = ar.area - (2 * math.pi * mech.Rc ** 2 if mech.kind == "gears" else 0)
@@ -383,6 +517,8 @@ def simulate(cfg, seed, keep=True):
         p0 = mech.C + mech.n_in * (RB + 6)
     elif mech.kind == "bounce":
         p0 = C + np.array([0.0, -120.0])
+    elif hasattr(mech, "p0"):
+        p0 = mech.p0.copy()
     elif mech.kind == "rods":
         a0, b0, pv, w0 = mech.segs(0.6)[0]
         p0 = pv + (b0 - pv) * 0.6 + np.array([-(b0 - pv)[1], (b0 - pv)[0]]) / (np.linalg.norm(b0 - pv) + 1e-9) * (RB + mech.th / 2 + 1) * np.sign(w0)
@@ -706,7 +842,9 @@ class Renderer:
         if cfg.get("theme") != "minimal":
             bg += g[..., None] * np.array(cfg.get("bg", (40, 22, 30)), np.float32)
         else:
-            bg[:] = (6, 6, 6)
+            bg[:] = cfg.get("bg_min", (6, 6, 6))
+            if cfg.get("grid"):
+                bg[::40, :] += 7; bg[:, ::40] += 7
         fl = cv2.GaussianBlur((ar.mask > 0).astype(np.float32), (0, 0), 1.0)[..., None]
         self.BG = bg; self.FL = fl
         self.GL = self.glow(150)
@@ -786,7 +924,8 @@ class Renderer:
                 put_text(f, self.cfg["hook_pt"], 24, W / 2, 124, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
             blit(f, *emoji("\U0001F447", 34), int(W / 2 - 17), int(146 + 4 * math.sin(t * 6)))
             mn = self.cfg.get("theme") == "minimal"
-            put_text(f, (f"{fr['n']} BALLS" if fr['n'] != 1 else "1 BALL"), 40 if mn else 54, W / 2, max(205, top - 75),
+            ctxt = str(fr['n']) if self.cfg.get("num_only") else (f"{fr['n']} BALLS" if fr['n'] != 1 else "1 BALL")
+            put_text(f, ctxt, (64 if self.cfg.get("num_only") else 40) if mn else 54, W / 2, max(205, top - 75),
                      (235, 235, 235) if mn else cur, stroke=0 if mn else 5, stroke_col=(20, 15, 20))
             if fr["t_over"] is not None:
                 put_text(f, "ABOUT TO EXPLODE!", 50, W / 2, ar.bottom + 70, (60, 60, 255), stroke=5, stroke_col=(255, 255, 255), scale=1 + 0.08 * math.sin(t * 18))
@@ -951,6 +1090,36 @@ CONFIGS = {
                            arcs=dict(RA=105.0, colA=(120, 230, 160)), scale="menor"),
     "engrenagens_retangulo": dict(shape="rounded", mech="gears", palette="vivo", hook="GEARS IN A BOX", bg=(20, 30, 55),
                                   gears=dict(axis_deg=-35, colA=(60, 160, 255), colB=(230, 200, 120), omega=1.5, teeth=16), scale="menor"),
+    # ---- 2026-11-10 ----
+    "prensas_4": dict(shape="circle", mech="pieces", palette="vivo", theme="minimal", seeds=4, bg_min=(28, 14, 8), grid=True,
+                      num_only=True, RB=6.0, maxper=5, hook="4 METAL PRESSES MULTIPLYING BALLS", hook_pt="4 prensas de metal multiplicando bolinhas",
+                      pieces=dict(hub=False, col=(175, 180, 188), pieces=[
+                          dict(off=(0, -262), pts=[(-65, -14), (65, -14), (65, 14), (-65, 14)], fill=True, th=8, press=dict(dir=(0, 1), amp=150, period=1.5, ph=0.0)),
+                          dict(off=(0, 262), pts=[(-65, -14), (65, -14), (65, 14), (-65, 14)], fill=True, th=8, press=dict(dir=(0, -1), amp=150, period=1.5, ph=0.0)),
+                          dict(off=(-262, 0), pts=[(-14, -65), (14, -65), (14, 65), (-14, 65)], fill=True, th=8, press=dict(dir=(1, 0), amp=150, period=1.5, ph=0.5)),
+                          dict(off=(262, 0), pts=[(-14, -65), (14, -65), (14, 65), (-14, 65)], fill=True, th=8, press=dict(dir=(-1, 0), amp=150, period=1.5, ph=0.5))]),
+                      scale="menor", t_full=30.0),
+    "rotor_cunhas": dict(shape="octagon", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=4, RB=7.5,
+                         hook="2 SPINNING BLADES MULTIPLYING BALLS", hook_pt="2 pás girando multiplicam as bolinhas",
+                         pieces=dict(col=(180, 184, 190), pieces=[
+                             dict(pts=[(28 * math.cos(-0.45), 28 * math.sin(-0.45))] + [(250 * math.cos(a), 250 * math.sin(a)) for a in np.linspace(-0.3, 0.3, 6)] +
+                                  [(28 * math.cos(0.45), 28 * math.sin(0.45))], fill=True, th=6, w=1.45, phase=ph) for ph in (0.0, math.pi)]),
+                         scale="maior", t_full=30.0),
+    "moldura_girando": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=4, RB=8.0, fill=0.9,
+                            hook="THE SPINNING FRAME THAT MULTIPLIES", hook_pt="A moldura que gira e multiplica",
+                            pieces=dict(col=(195, 198, 205), pieces=[
+                                dict(pts=[(-70, -125), (-205, -125), (-205, 125), (-70, 125)], closed=False, th=14, w=0.85),
+                                dict(pts=[(70, -125), (205, -125), (205, 125), (70, 125)], closed=False, th=14, w=0.85, phase=0.0),
+                                dict(pts=[(-205, 0), (205, 0)], closed=False, th=12, w=0.85)]),
+                            scale="menor", t_full=30.0),
+    "estrela_quadrado": dict(shape="star", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=5, RB=7.0, seed_r=120,
+                             hook="A SPINNING SQUARE INSIDE A STAR", hook_pt="Um quadrado girando dentro da estrela",
+                             pieces=dict(hub=False, col=(200, 202, 208), pieces=[
+                                 dict(pts=[(-80, -80), (80, -80), (80, 80), (-80, 80)], closed=True, th=14, w=1.7)]),
+                             scale="maior", t_full=30.0),
+    "triangulo_quica": dict(shape="triangle", mech="bounce", palette="neon", hook="1 BALL BOUNCING IN A TRIANGLE", hook_pt="1 bolinha quicando no triângulo",
+                            bg=(55, 25, 45), RB=8.0, scale="menor", t_full=37.0, cool=1.5, maxper=1),
+
 }
 
 

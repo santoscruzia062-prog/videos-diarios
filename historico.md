@@ -5,6 +5,14 @@ dos últimos 7 dias.
 
 | Data | Horário | Formato | Tema | Formato da arena | Resultado |
 |---|---|---|---|---|---|
+| 2026-11-10 | 21:00 | bolinhas multiplicando (bolas.py, pieces, minimal) | quadrado vazado girando no centro (estrela_quadrado) | estrela | agendado |
+| 2026-11-10 | 18:30 | bolinhas multiplicando (bolas.py, bounce) | 1 bolinha quicando, cada batida +1 (triangulo_quica) | triângulo | agendado |
+| 2026-11-10 | 16:00 | bolinhas multiplicando (bolas.py, pieces, minimal) | rotor com 2 pás em cunha (rotor_cunhas) | octógono | agendado |
+| 2026-11-10 | 13:30 | quebra-quadrados (quebra.py, k=4.4) | 1 bolinha vs 84 quadrados (quebra_circulo) | círculo | agendado |
+| 2026-11-10 | 11:30 | bolinhas multiplicando (bolas.py, pieces, minimal) | moldura retangular girando com aberturas (moldura_girando) | círculo | agendado |
+| 2026-11-10 | 10:00 | duelo com itens (duelo_itens.py) | 🇺🇸 USA vs BRAZIL 🇧🇷 (Brasil vira e vence) | círculo | agendado |
+| 2026-11-10 | 08:30 | bolinhas multiplicando (bolas.py, pieces/prensas, minimal azul-marinho) | 4 prensas metálicas (prensas_4) | círculo | agendado |
+| 2026-11-10 | 07:00 | bolinhas multiplicando (bolas.py, rods, minimal) | roda de 5 raios (minimal_roda_raios) | círculo | agendado |
 | 2026-11-09 | 21:00 | bolinhas multiplicando (bolas.py, rods) | 3 bastões girando | hexágono | agendado |
 | 2026-11-09 | 18:30 | bolinhas multiplicando (bolas.py, rods) | 4 bastões | círculo | agendado |
 | 2026-11-09 | 16:00 | bolinhas multiplicando (bolas.py, gears) | engrenagens | triângulo | agendado |
@@ -22,7 +30,7 @@ dos últimos 7 dias.
 | 2026-11-07 | — | multiplicação | 🤑 dinheiro; ❤️ corações; bolinhas coloridas | quadrado; círculo | — |
 
 ## Referências do dono (PRIORIDADE — usar 2–3 por noite, misturando com o nosso estilo)
-**FAZER NA NOITE DE 09/11 (1 dos 8 vídeos, pedido do dono): 🇺🇸 USA vs BRAZIL 🇧🇷 — duelo com itens.**
+**✅ FEITO em 09/11 (vídeo de 10/11 10:00, `motor/duelo_itens.py`): 🇺🇸 USA vs BRAZIL 🇧🇷 — duelo com itens.** Dá para reaproveitar o motor para outros pares de bandeiras/animais (editar `CONFIGS`/`script`).
 Código novo (ex.: `motor/duelo_itens.py`, pode reaproveitar partes de `arena.py`/`bolas.py`):
 - Círculo com linha branca fina, fundo azul-marinho escuro com grade sutil.
 - 2 bolões-personagem com a BANDEIRA (emoji 🇺🇸 / 🇧🇷 da Noto Color Emoji) e anel colorido
@@ -42,21 +50,23 @@ Código novo (ex.: `motor/duelo_itens.py`, pode reaproveitar partes de `arena.py
 Ref. 2 (canal de física "satisfying", 08/11): fundo azul-marinho bem escuro, círculo com linha
 branca fina, peças METÁLICAS cinza com sombra (visual de máquina/laboratório), bolinhas PEQUENAS
 (raio ~4–5) e poucas no começo, contador = só um NÚMERO grande no topo (sem texto).
-- [ ] 4 PRENSAS/pistões metálicos presos na borda (cima, baixo, esquerda, direita) que descem e
+- [x] (10/11, prensas_4) 4 PRENSAS/pistões metálicos presos na borda (cima, baixo, esquerda, direita) que descem e
       batem; bolinha esmagada multiplica (o mais visto da referência, 9,6 mi). Movimento ritmado
       de prensa (é outro mecanismo; o "nada de vai-e-vem" vale para os giratórios).
 - [ ] 2 prensas largas horizontais (cima e baixo) fechando como um sanduíche.
-- [ ] Rotor com 2 pás em CUNHA largas (tipo hélice/leque) girando no centro.
+- [x] (10/11, rotor_cunhas) Rotor com 2 pás em CUNHA largas (tipo hélice/leque) girando no centro.
 - [ ] 6–7 cunhas metálicas fixas na borda apontando para dentro + bolinhas quicando nelas.
 - [ ] 2 hastes diagonais com placa na ponta (formato T) girando em sentidos opostos.
 - [ ] Bolinha-emoji ❤️ no centro + texto "Manda esse vídeo pra quem você ama ❤️" (gera envio).
 - [ ] (baixa prioridade) corrida 1 vs 1 vermelho x azul "Quem chega a 5.000 primeiro?".
 Ref. 1 (outro canal, 08/11): fundo preto, manchas de cor, roda de raios, moldura retangular
 girando, quadrado vazado girando no centro, semicírculos nas laterais, portais x5/x20.
+  Usados em 10/11: roda de raios ✅, moldura retangular ✅ (com aberturas — fechada deixava buracos fora), quadrado vazado ✅. Faltam: semicírculos laterais, portais x5/x20.
+  Motor novo: `mech="pieces"` em bolas.py (peças-polígono que giram e/ou batem como prensa) — use para hastes em T, cunhas fixas, semicírculos etc.
 
 ## Ideias na fila (ainda não feitas)
 - quebra_circulo (já tem config em quebra.py: quebra-quadrados dentro de círculo)
-- estrela com 5 bastões curtos; losango com engrenagens; pentágono com ponteiro duplo
+- estrela com 5 bastões curtos (formato "star" já existe; também "pentagon" e "diamond"); losango com engrenagens; pentágono com ponteiro duplo
 - bolinha quicando dentro de quadrado/triângulo; 2 ponteiros (horas e minutos) no relógio
 - bastões de tamanhos/velocidades diferentes; engrenagens de 3 dentes
 - Batalha royale dos 12 signos (♈ — fazer distintivos coloridos, os emojis de signo são todos roxos)

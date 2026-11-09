@@ -66,9 +66,16 @@ mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
   `python3 bolas.py render <nome> <semente>` → `out_<nome>/<nome>.mp4` (~8–15 min cada; a
   máquina tem 2 CPUs: rode no máximo 2 renders ao mesmo tempo, em segundo plano).
   Bastões: pivôs com distância > soma dos comprimentos (L) para não se cruzarem.
+- `bolas.py` também tem `mech="pieces"` (classe `Pieces`): polígonos metálicos com espessura que giram
+  (`w`, `phase`, `off`) e/ou batem como PRENSA (`press=dict(dir, amp, period, ph)`); `fill=True` = peça
+  sólida, `closed=False` = linha aberta. Formatos extras: `star`, `pentagon`, `diamond`. Opções de
+  tema: `bg_min` (cor do fundo minimal), `grid=True`, `num_only=True` (contador só número).
+  Moldura fechada prende bolinhas dentro e deixa buraco fora: deixe aberturas.
+- `duelo_itens.py` — DUELO COM ITENS (bandeiras, barras de vida, itens, virada scriptada):
+  `python3 duelo_itens.py sim|preview|render usa_brasil [frames…]`.
 - `quebra.py` — QUEBRA-QUADRADOS: 1 bolinha vs quadrados numerados; quadrado quebrado vira
   bolinha; no fim 3 rodadas dobrando e explosão. `python3 quebra.py tune <nome>` (acha o fator
-  k para limpar em ~32 s), `preview <nome> <k> frames…`, `render <nome> <k>`.
+  k para limpar em ~32 s; a busca vai só até k=3 — se limpar cedo, teste k maiores à mão, ex.: quebra_circulo k=4.4), `preview <nome> <k> frames…`, `render <nome> <k>`.
 - `arena.py`, `auto.py`, `royale*.py`, `legado/` — estilos antigos (duelo/royale), só referência.
 - Fontes: `/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf`; emojis:
   `/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf`.
