@@ -21,6 +21,22 @@ dos últimos 7 dias.
 | 2026-11-07 | — | duelos antigos | 😇 BEM vs 😈 MAL; 🔥 FOGO vs 🧊 GELO | hexágono; triângulo | — |
 | 2026-11-07 | — | multiplicação | 🤑 dinheiro; ❤️ corações; bolinhas coloridas | quadrado; círculo | — |
 
+## Referências do dono (PRIORIDADE — usar 2–3 por noite, misturando com o nosso estilo)
+Ref. 2 (canal de física "satisfying", 08/11): fundo azul-marinho bem escuro, círculo com linha
+branca fina, peças METÁLICAS cinza com sombra (visual de máquina/laboratório), bolinhas PEQUENAS
+(raio ~4–5) e poucas no começo, contador = só um NÚMERO grande no topo (sem texto).
+- [ ] 4 PRENSAS/pistões metálicos presos na borda (cima, baixo, esquerda, direita) que descem e
+      batem; bolinha esmagada multiplica (o mais visto da referência, 9,6 mi). Movimento ritmado
+      de prensa (é outro mecanismo; o "nada de vai-e-vem" vale para os giratórios).
+- [ ] 2 prensas largas horizontais (cima e baixo) fechando como um sanduíche.
+- [ ] Rotor com 2 pás em CUNHA largas (tipo hélice/leque) girando no centro.
+- [ ] 6–7 cunhas metálicas fixas na borda apontando para dentro + bolinhas quicando nelas.
+- [ ] 2 hastes diagonais com placa na ponta (formato T) girando em sentidos opostos.
+- [ ] Bolinha-emoji ❤️ no centro + texto "Manda esse vídeo pra quem você ama ❤️" (gera envio).
+- [ ] (baixa prioridade) corrida 1 vs 1 vermelho x azul "Quem chega a 5.000 primeiro?".
+Ref. 1 (outro canal, 08/11): fundo preto, manchas de cor, roda de raios, moldura retangular
+girando, quadrado vazado girando no centro, semicírculos nas laterais, portais x5/x20.
+
 ## Ideias na fila (ainda não feitas)
 - quebra_circulo (já tem config em quebra.py: quebra-quadrados dentro de círculo)
 - estrela com 5 bastões curtos; losango com engrenagens; pentágono com ponteiro duplo
