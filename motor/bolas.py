@@ -19,6 +19,7 @@ EMOJI_FONT = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
 SH = 16
 
 PALETTES = {
+    "manchas": [(170, 60, 245), (40, 150, 255), (70, 205, 70), (235, 140, 40), (40, 225, 245), (200, 70, 150)],
     "vivo": [(230, 140, 30), (40, 230, 235), (225, 60, 175), (40, 90, 245), (70, 215, 60), (210, 60, 235),
              (235, 215, 40), (40, 170, 245), (220, 50, 110), (60, 40, 225), (40, 235, 170), (190, 120, 255),
              (180, 210, 40), (20, 120, 250), (245, 95, 70), (110, 230, 240)],
@@ -365,6 +366,14 @@ def simulate(cfg, seed, keep=True):
 
     t_now = [0.0]
 
+    def add_at_cols(P_, V_, cols):
+        nonlocal pos, prev, col, trapped, ghost, cdn
+        n = len(P_)
+        pos = np.vstack([pos, P_]); prev = np.vstack([prev, P_ - V_ * DT])
+        col = np.concatenate([col, cols.astype(np.int32)])
+        trapped = np.concatenate([trapped, np.zeros(n, bool)]); ghost = np.concatenate([ghost, np.zeros(n, bool)])
+        cdn = np.concatenate([cdn, np.full(n, t_now[0])])
+
     def cdn_ext(n):
         nonlocal cdn
         cdn = np.concatenate([cdn, np.full(n, t_now[0])])
@@ -381,6 +390,11 @@ def simulate(cfg, seed, keep=True):
         _, arcs0 = mech.arcs_at(mech.T1)
         p0 = arcs0[0][0].copy()
     add(1, p0, np.zeros(2) + 1e-6, 0); prev[:] = pos; ghost[:] = True
+    for si in range(1, cfg.get("seeds", 1)):           # sementes de outras cores (manchas de cor)
+        ang = 2 * math.pi * si / cfg["seeds"]
+        q = C + np.array([math.cos(ang), math.sin(ang)]) * cfg.get("seed_r", 200)
+        add(1, q, np.array([math.cos(ang + 1.6), math.sin(ang + 1.6)]) * 200, si if cfg.get("palette") == "manchas" else si * max(1, len(pal) // cfg["seeds"]))
+        prev[-1] = pos[-1] - np.array([math.cos(ang + 1.6), math.sin(ang + 1.6)]) * 200 * DT
     t_tick, tick_i = 0.5, 0
     note_i = 0
     if mech.kind == "rods":
@@ -448,7 +462,10 @@ def simulate(cfg, seed, keep=True):
                         ang = rng.uniform(0, 2 * math.pi, len(reps))
                         off = np.stack([np.cos(ang), np.sin(ang)], 1) * RB * rng.uniform(0.9, 1.6, (len(reps), 1))
                         vel = (pos[reps] - prev[reps]) / DT * 0.7 + off * (30 if mech.kind == "bounce" else 9)
-                        add_at(pos[reps] + off, vel, st["ci"])
+                        if cfg.get("inherit"):
+                            add_at_cols(pos[reps] + off, vel, col[reps])
+                        else:
+                            add_at(pos[reps] + off, vel, st["ci"])
                         acc["n"] += len(reps); acc["p"] = acc["p"] + pos[src].sum(0); acc["k"] += len(src)
                 hits = np.zeros(len(pos), bool)
                 if acc["n"] and t - acc["t0"] >= 0.2:
@@ -686,7 +703,10 @@ class Renderer:
         yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
         g = np.clip(1 - np.sqrt((xx - ar.C[0]) ** 2 + (yy - ar.C[1]) ** 2) / 760, 0, 1) ** 1.5
         bg = np.zeros((H, W, 3), np.float32); bg[:] = (8, 6, 8)
-        bg += g[..., None] * np.array(cfg.get("bg", (40, 22, 30)), np.float32)
+        if cfg.get("theme") != "minimal":
+            bg += g[..., None] * np.array(cfg.get("bg", (40, 22, 30)), np.float32)
+        else:
+            bg[:] = (6, 6, 6)
         fl = cv2.GaussianBlur((ar.mask > 0).astype(np.float32), (0, 0), 1.0)[..., None]
         self.BG = bg; self.FL = fl
         self.GL = self.glow(150)
@@ -710,8 +730,9 @@ class Renderer:
         if not ex:
             s = fr["s"]
             fl = self.FL if abs(s - 1) < 0.002 else cv2.warpAffine(self.FL, np.float32([[s, 0, ar.C[0] * (1 - s)], [0, s, ar.C[1] * (1 - s)]]), (W, H))[..., None]
-            f = f * (1 - fl * 0.5) + fl * 0.5 * np.array(self.cfg.get("floor", (30, 22, 26)), np.float32)
-        for (t0, gc, n, ci) in pops:
+            if self.cfg.get("theme") != "minimal":
+                f = f * (1 - fl * 0.5) + fl * 0.5 * np.array(self.cfg.get("floor", (30, 22, 26)), np.float32)
+        for (t0, gc, n, ci) in (pops if self.cfg.get("theme") != "minimal" else []):
             if t0 - 0.02 <= t < t0 + 0.8:
                 k = 1.0 if t < t0 + 0.1 else max(0.0, 1 - (t - t0 - 0.1) / 0.7)
                 self.add_glow(f, gc, self.pal[ci], k * 0.9)
@@ -736,10 +757,11 @@ class Renderer:
         cur = self.pal[fr["ci"] % len(self.pal)]
         if not ex:
             pts = (ar.dense(fr["s"], wob, t) * SH).astype(np.int32)
-            gl = np.zeros_like(img)
-            cv2.polylines(gl, [pts], True, cur, 14, cv2.LINE_AA, 4)
-            img = cv2.add(img, (cv2.GaussianBlur(gl, (0, 0), 9) * 0.8).astype(np.uint8))
-            cv2.polylines(img, [pts], True, (245, 240, 250), 4, cv2.LINE_AA, 4)
+            if self.cfg.get("theme") != "minimal":
+                gl = np.zeros_like(img)
+                cv2.polylines(gl, [pts], True, cur, 14, cv2.LINE_AA, 4)
+                img = cv2.add(img, (cv2.GaussianBlur(gl, (0, 0), 9) * 0.8).astype(np.uint8))
+            cv2.polylines(img, [pts], True, (245, 240, 250), 4 if self.cfg.get("theme") != "minimal" else 3, cv2.LINE_AA, 4)
         for fg in fr["frags"]:
             cr, sr = math.cos(fg["rot"]), math.sin(fg["rot"]); R = np.array([[cr, -sr], [sr, cr]])
             cv2.line(img, P(fg["c"] + R @ fg["a"]), P(fg["c"] + R @ fg["b"]), (245, 240, 250), 4, cv2.LINE_AA, 4)
@@ -751,7 +773,7 @@ class Renderer:
         # "+N" de cada leva
         for (t0, gc, n, ci) in pops:
             dtt = t - t0
-            if 0 <= dtt < 0.8 and not ex and n > 0:
+            if 0 <= dtt < 0.8 and not ex and n > 0 and self.cfg.get("theme") != "minimal":
                 put_text(f, f"+{n}", 26, gc[0], gc[1] + 20 + dtt * 50, self.pal[ci], stroke=4, stroke_col=(20, 15, 20), alpha=min(1.0, (1 - dtt / 0.8) * 1.6))
         # gancho + contador
         top = ar.top
@@ -761,7 +783,9 @@ class Renderer:
                 hs -= 2
             put_text(f, hk, hs, W / 2, 92, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
             blit(f, *emoji("\U0001F447", 40), int(W / 2 - 20), int(128 + 4 * math.sin(t * 6)))
-            put_text(f, (f"{fr['n']} BOLINHAS" if fr['n'] != 1 else "1 BOLINHA"), 54, W / 2, max(205, top - 75), cur, stroke=5, stroke_col=(20, 15, 20))
+            mn = self.cfg.get("theme") == "minimal"
+            put_text(f, (f"{fr['n']} BOLINHAS" if fr['n'] != 1 else "1 BOLINHA"), 40 if mn else 54, W / 2, max(205, top - 75),
+                     (235, 235, 235) if mn else cur, stroke=0 if mn else 5, stroke_col=(20, 15, 20))
             if fr["t_over"] is not None:
                 put_text(f, "VAI EXPLODIR!", 50, W / 2, ar.bottom + 70, (60, 60, 255), stroke=5, stroke_col=(255, 255, 255), scale=1 + 0.08 * math.sin(t * 18))
             else:
@@ -880,6 +904,9 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
+    "minimal_roda_raios": dict(shape="circle", mech="rods", palette="manchas", theme="minimal", inherit=True, seeds=4, hook="A RODA QUE MULTIPLICA",
+                               rods=dict(rods=[dict(off=(0, 0), L=250, w=1.3, phase=k * 2 * math.pi / 5, half=True) for k in range(5)],
+                                         col=(200, 205, 210), th=10.0), scale="maior", t_full=30.0),
     "circulo_quica": dict(shape="circle", mech="bounce", palette="vivo", hook="CADA BATIDA NA BORDA = +1 BOLINHA", bg=(25, 35, 60),
                           scale="maior", t_full=30.0, cool=0.6, maxper=2),
     "relogio_ponteiro": dict(shape="circle", mech="rods", palette="neon", hook="O RELÓGIO QUE MULTIPLICA BOLINHAS", bg=(40, 30, 20),

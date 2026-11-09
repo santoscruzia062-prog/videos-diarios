@@ -36,6 +36,19 @@ e o `historico.md` inteiros antes de criar qualquer coisa, e atualize o `histori
   "N BOLINHAS!", "Gostou? SEGUE A PÁGINA!", "Curte e compartilha com alguém".
 - Nada de luz piscando rápido (epilepsia).
 
+## Estilo visual (a partir dos vídeos de 2026-11-10) — referência que o dono mandou
+Inspirado em canais de "satisfying physics" (ex.: o que o dono mostrou, 28–30 mi de views),
+mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
+- `theme="minimal"`: fundo preto, arena com linha branca fina, sem brilho neon, sem "+N",
+  contador discreto, texto curto. Mecanismos cinza-prata.
+- Manchas de cor: `palette="manchas"`, `inherit=True` (bolinha nova herda a cor da mãe),
+  `seeds=3..4` (começa com bolinhas de cores bem diferentes) → blocos de cor disputando espaço.
+- Mecanismos grandes e variados: roda de raios (`minimal_roda_raios`, vários `half` no centro),
+  moldura retangular girando, quadrado vazado girando no centro, semicírculos nas laterais,
+  bastões que passam da borda, portais multiplicadores (x2/x5/x20) — criar código novo
+  quando precisar, testar com preview antes.
+- Usar o estilo minimalista na maioria dos 8 vídeos do dia, intercalando com os coloridos.
+
 ## Motor (pasta `motor/`)
 - `bolas.py` — MOTOR ATUAL. Configs em `CONFIGS` (shape: circle, square, hexagon, octagon,
   triangle, heart, rounded; mech: `rods` (bastões: lista de {off, L, w, phase}), `gears`
