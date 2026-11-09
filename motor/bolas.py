@@ -241,8 +241,8 @@ class Rods:
     bolinhas da cor da vez — quanto mais bolinhas, mais batidas, mais rápido enche."""
     kind = "rods"
 
-    def __init__(self, C, rods, th=16.0, col=(200, 200, 210)):
-        self.C = np.array(C, float); self.rods = rods; self.th = th; self.col = col
+    def __init__(self, C, rods, th=16.0, col=(200, 200, 210), marks=None):
+        self.C = np.array(C, float); self.rods = rods; self.th = th; self.col = col; self.marks = marks
 
     def segs(self, t):
         out = []
@@ -250,7 +250,7 @@ class Rods:
             p = self.C + np.array(r["off"], float)
             a = r.get("phase", 0.0) + r["w"] * t
             u = np.array([math.cos(a), math.sin(a)])
-            out.append((p - u * r["L"], p + u * r["L"], p, r["w"]))
+            out.append((p if r.get("half") else p - u * r["L"], p + u * r["L"], p, r["w"]))
         return out
 
     def collide(self, pos, prev, mask, RB, t):
@@ -275,6 +275,11 @@ class Rods:
         return hit_all
 
     def draw(self, img, t, glowk=0.0):
+        if self.marks:
+            for k in range(12):
+                ang = k * math.pi / 6; u = np.array([math.cos(ang), math.sin(ang)])
+                r0 = self.marks - (26 if k % 3 == 0 else 16)
+                cv2.line(img, P(self.C + u * r0), P(self.C + u * (self.marks - 4)), (240, 235, 245), 6 if k % 3 == 0 else 3, cv2.LINE_AA, 4)
         for a, b, p, w in self.segs(t):
             u = (b - a) / (np.linalg.norm(b - a) + 1e-9); n = np.array([-u[1], u[0]]); h = self.th / 2
             cv2.line(img, P(a), P(b), (55, 50, 60), int(self.th + 4), cv2.LINE_AA, 4)
@@ -287,6 +292,17 @@ class Rods:
             gp = (np.array(pts) * SH).astype(np.int32)
             cv2.fillPoly(img, [gp], (70, 175, 215), cv2.LINE_AA, 4)
             cv2.circle(img, P(p), int(5 * SH), (50, 45, 50), -1, cv2.LINE_AA, 4)
+
+
+class Bounce:
+    """Sem mecanismo: a bolinha quica na borda e cada batida multiplica."""
+    kind = "bounce"
+
+    def __init__(self, C, **kw):
+        self.C = np.array(C, float)
+
+    def draw(self, img, t, glowk=0.0):
+        pass
 
 
 def P(p):
@@ -307,6 +323,8 @@ def simulate(cfg, seed, keep=True):
         mech = Gears(C, **cfg.get("gears", {}))
     elif cfg["mech"] == "rods":
         mech = Rods(C, **cfg["rods"])
+    elif cfg["mech"] == "bounce":
+        mech = Bounce(C)
     else:
         mech = Arcs(C, **cfg.get("arcs", {}))
     free = ar.area - (2 * math.pi * mech.Rc ** 2 if mech.kind == "gears" else 0)
@@ -354,6 +372,8 @@ def simulate(cfg, seed, keep=True):
     # 1ª bolinha já no lugar de ser esmagada
     if mech.kind == "gears":
         p0 = mech.C + mech.n_in * (RB + 6)
+    elif mech.kind == "bounce":
+        p0 = C + np.array([0.0, -120.0])
     elif mech.kind == "rods":
         a0, b0, pv, w0 = mech.segs(0.6)[0]
         p0 = pv + (b0 - pv) * 0.6 + np.array([-(b0 - pv)[1], (b0 - pv)[0]]) / (np.linalg.norm(b0 - pv) + 1e-9) * (RB + mech.th / 2 + 1) * np.sign(w0)
@@ -365,6 +385,8 @@ def simulate(cfg, seed, keep=True):
     note_i = 0
     if mech.kind == "rods":
         ghost[:] = False
+    if mech.kind == "bounce":
+        ghost[:] = False; prev[:] = pos - np.array([[260.0, 0.0]]) * DT
     cdn = np.full(len(pos), -9.0)          # recarga de cada bolinha (bastões)
     acc = dict(n=0, p=np.zeros(2), k=0, t0=0.0)
 
@@ -398,7 +420,7 @@ def simulate(cfg, seed, keep=True):
                             audio.append((t, "rumble", 0.35 + 0.15 * st["lvl"]))
                         audio.append((t, "trim", 0.55))
                     out_p, out_v = mech.out_pt, -mech.n_in * 260
-            elif mech.kind == "rods":
+            elif mech.kind in ("rods", "bounce"):
                 k = int(t / 0.5)
                 if ("rnd", k) not in done and k >= 1:
                     done.add(("rnd", k))
@@ -425,7 +447,7 @@ def simulate(cfg, seed, keep=True):
                         reps = np.repeat(src, per)[:deficit]
                         ang = rng.uniform(0, 2 * math.pi, len(reps))
                         off = np.stack([np.cos(ang), np.sin(ang)], 1) * RB * rng.uniform(0.9, 1.6, (len(reps), 1))
-                        vel = (pos[reps] - prev[reps]) / DT * 0.7 + off * 9
+                        vel = (pos[reps] - prev[reps]) / DT * 0.7 + off * (30 if mech.kind == "bounce" else 9)
                         add_at(pos[reps] + off, vel, st["ci"])
                         acc["n"] += len(reps); acc["p"] = acc["p"] + pos[src].sum(0); acc["k"] += len(src)
                 hits = np.zeros(len(pos), bool)
@@ -498,7 +520,7 @@ def simulate(cfg, seed, keep=True):
                     mm = (a + b) / 2; dv = (mm - C) / (np.linalg.norm(mm - C) + 1e-6)
                     frags.append(dict(a=a - mm, b=(b - mm) * 0.9, c=mm, rot=0.0, v=dv * rng.uniform(500, 1100), w=rng.uniform(-6, 6)))
 
-        grav = np.array([0.0, 900.0]) if ex else np.zeros(2)
+        grav = np.array([0.0, 900.0]) if (ex or (mech.kind == "bounce" and st["t_over"] is None)) else np.zeros(2)
         for s in range(SUB):
             if len(pos) == 0:
                 break
@@ -507,7 +529,7 @@ def simulate(cfg, seed, keep=True):
             if not ex:
                 if mech.kind == "gears":
                     mech.pull(pos, v, RB)
-                elif mech.kind == "rods":
+                elif mech.kind in ("rods", "bounce"):
                     v *= 0.999
                 else:
                     rel = pos - C
@@ -534,6 +556,8 @@ def simulate(cfg, seed, keep=True):
                         if len(hits) != len(pos):
                             hits = np.zeros(len(pos), bool)
                         hits |= mech.collide(pos, prev, solid, RB, ts)
+                    elif mech.kind == "bounce":
+                        pass
                     else:
                         _, arcs = mech.arcs_at(ts)
                         free = solid & ~trapped
@@ -559,9 +583,15 @@ def simulate(cfg, seed, keep=True):
                     o = sd < RB
                     if o.any():
                         g = np.stack([gx[o], gy[o]], 1)
+                        if mech.kind == "bounce":
+                            if len(hits) != len(pos):
+                                hits = np.zeros(len(pos), bool)
+                            vn0 = ((pos[o] - prev[o]) * g).sum(1)
+                            oi = np.where(o)[0]
+                            hits[oi[vn0 < -0.3]] = True
                         pos[o] += g * (RB - sd[o])[:, None]
                         vv = pos[o] - prev[o]; vn = (vv * g).sum(1)
-                        prev[o] = pos[o] - (vv - np.minimum(vn, 0)[:, None] * g * 1.85)
+                        prev[o] = pos[o] - (vv - np.minimum(vn, 0)[:, None] * g * (1.97 if mech.kind == "bounce" else 1.85))
         if ex:
             kp = (pos[:, 0] > -60) & (pos[:, 0] < W + 60) & (pos[:, 1] < H + 60) & (pos[:, 1] > -600)
             pos, prev, col, trapped, ghost, cdn = pos[kp], prev[kp], col[kp], trapped[kp], ghost[kp], cdn[kp]
@@ -731,11 +761,11 @@ class Renderer:
                 hs -= 2
             put_text(f, hk, hs, W / 2, 92, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
             blit(f, *emoji("\U0001F447", 40), int(W / 2 - 20), int(128 + 4 * math.sin(t * 6)))
-            put_text(f, "???", 60, W / 2, max(205, top - 75), cur, stroke=5, stroke_col=(20, 15, 20), scale=1 + 0.05 * math.sin(t * 4))
+            put_text(f, (f"{fr['n']} BOLINHAS" if fr['n'] != 1 else "1 BOLINHA"), 54, W / 2, max(205, top - 75), cur, stroke=5, stroke_col=(20, 15, 20))
             if fr["t_over"] is not None:
                 put_text(f, "VAI EXPLODIR!", 50, W / 2, ar.bottom + 70, (60, 60, 255), stroke=5, stroke_col=(255, 255, 255), scale=1 + 0.08 * math.sin(t * 18))
             else:
-                put_text(f, "Chuta o número nos comentários", 28, W / 2, ar.bottom + 62, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40))
+                put_text(f, "Segue a página pra ver mais!", 30, W / 2, ar.bottom + 62, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40))
         img = np.clip(f, 0, 255).astype(np.uint8)
         if ex:
             te = t - fr["t_expl"]
@@ -750,9 +780,9 @@ class Renderer:
                 blit(f, *emoji("\U0001F4A5", int(150 * max(0.1, sc))), int(W / 2 - 75 * max(0.1, sc)), int(520 - 75 * max(0.1, sc)))
                 put_text(f, f"{st['final']} BOLINHAS!", 70, W / 2, 680, cur, stroke=6, stroke_col=(255, 255, 255), scale=max(0.05, sc))
                 if te > 1.3:
-                    put_text(f, "Você chutou perto?", 40, W / 2, 790, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
-                    put_text(f, "Curte, compartilha e segue!", 34, W / 2, 852, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
-                    put_text(f, "Comenta o próximo palpite", 28, W / 2, 900, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.6) / 0.3) if te > 1.6 else 0.0)
+                    put_text(f, "Gostou? SEGUE A PÁGINA!", 44, W / 2, 790, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
+                    put_text(f, "Curte e compartilha com alguém", 32, W / 2, 852, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
+                    put_text(f, "Todo dia tem bolinha nova aqui", 28, W / 2, 900, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.6) / 0.3) if te > 1.6 else 0.0)
                 img = np.clip(f, 0, 255).astype(np.uint8)
             shake = max(0.0, 18 * (1 - te / 0.7))
         elif fr["t_over"] is not None:
@@ -850,25 +880,30 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
-    "quadrado_4bastoes": dict(shape="square", mech="rods", palette="vivo", hook="4 BASTÕES: QUANTAS ATÉ EXPLODIR?", bg=(40, 22, 30),
+    "circulo_quica": dict(shape="circle", mech="bounce", palette="vivo", hook="CADA BATIDA NA BORDA = +1 BOLINHA", bg=(25, 35, 60),
+                          scale="maior", t_full=30.0, cool=0.6, maxper=2),
+    "relogio_ponteiro": dict(shape="circle", mech="rods", palette="neon", hook="O RELÓGIO QUE MULTIPLICA BOLINHAS", bg=(40, 30, 20),
+                             rods=dict(rods=[dict(off=(0, 0), L=268, w=1.6, phase=-math.pi / 2, half=True)], col=(230, 230, 240), th=14.0, marks=298),
+                             scale="menor", t_full=30.0),
+    "quadrado_4bastoes": dict(shape="square", mech="rods", palette="vivo", hook="4 BASTÕES MULTIPLICANDO BOLINHAS", bg=(40, 22, 30),
                               rods=dict(rods=[dict(off=(-150, -150), L=112, w=2.1, phase=0.0), dict(off=(150, -150), L=112, w=-2.1, phase=0.0),
                                               dict(off=(150, 150), L=112, w=2.1, phase=math.pi / 2), dict(off=(-150, 150), L=112, w=-2.1, phase=math.pi / 2)],
                                         col=(210, 210, 220)), scale="maior", t_full=30.0),
-    "coracao_2bastoes": dict(shape="heart", mech="rods", palette="doce", hook="QUANTAS CABEM NO CORAÇÃO?", bg=(60, 20, 50), RB=8.5,
+    "coracao_2bastoes": dict(shape="heart", mech="rods", palette="doce", hook="O CORAÇÃO VAI ENCHER ATÉ EXPLODIR", bg=(60, 20, 50), RB=8.5,
                              rods=dict(rods=[dict(off=(-160, -45), L=108, w=2.3, phase=0.4), dict(off=(160, -45), L=108, w=-2.3, phase=-0.4)],
                                        col=(225, 205, 255)), scale="maior", t_full=30.0),
-    "circulo_4bastoes": dict(shape="circle", mech="rods", palette="neon", hook="CHUTA: QUANTAS ATÉ EXPLODIR?", bg=(50, 20, 40),
+    "circulo_4bastoes": dict(shape="circle", mech="rods", palette="neon", hook="ESPERA ATÉ O FINAL!", bg=(50, 20, 40),
                              rods=dict(rods=[dict(off=(0, -150), L=100, w=2.4, phase=0.0), dict(off=(150, 0), L=100, w=-2.4, phase=0.0),
                                              dict(off=(0, 150), L=100, w=2.4, phase=0.0), dict(off=(-150, 0), L=100, w=-2.4, phase=0.0)],
                                        col=(120, 230, 160)), scale="menor", t_full=30.0),
-    "hexagono_3bastoes": dict(shape="hexagon", mech="rods", palette="vivo", hook="3 BASTÕES GIRANDO... QUANTAS?", bg=(30, 30, 60),
+    "hexagono_3bastoes": dict(shape="hexagon", mech="rods", palette="vivo", hook="3 BASTÕES GIRANDO SEM PARAR", bg=(30, 30, 60),
                               rods=dict(rods=[dict(off=(140 * math.cos(a), 140 * math.sin(a)), L=104, w=2.2 * (1 if i % 2 == 0 else -1), phase=a)
                                               for i, a in enumerate([-math.pi / 2, math.pi / 6, 5 * math.pi / 6])],
                                         col=(230, 200, 120)), scale="maior", t_full=30.0),
-    "triangulo_engrenagens": dict(shape="triangle", mech="gears", palette="neon", hook="QUANTAS CABEM NO TRIÂNGULO?", bg=(20, 30, 55), cy=600,
+    "triangulo_engrenagens": dict(shape="triangle", mech="gears", palette="neon", hook="ENGRENAGENS MULTIPLICANDO BOLINHAS", bg=(20, 30, 55), cy=600,
                                   gears=dict(axis_deg=0, Rc=50.0, colA=(60, 160, 255), colB=(230, 200, 120), omega=1.5, teeth=12),
                                   scale="menor", RB=8.0, fill=0.88, t_full=31.0),
-    "retangulo_2bastoes": dict(shape="rounded", mech="rods", palette="doce", hook="2 BASTÕES GIGANTES: QUANTAS?", bg=(20, 40, 30),
+    "retangulo_2bastoes": dict(shape="rounded", mech="rods", palette="doce", hook="2 BASTÕES GIGANTES", bg=(20, 40, 30),
                                rods=dict(rods=[dict(off=(0, -165), L=150, w=1.9, phase=0.0), dict(off=(0, 165), L=150, w=-1.9, phase=0.0)],
                                          col=(200, 220, 240), th=18.0), scale="menor", t_full=30.0),
     "engrenagens_circulo": dict(shape="circle", mech="gears", palette="vivo", hook="QUANTAS ATÉ EXPLODIR?",
