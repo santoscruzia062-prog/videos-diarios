@@ -30,10 +30,11 @@ e o `historico.md` inteiros antes de criar qualquer coisa, e atualize o `histori
   retângulo com 2 bastões gigantes, círculo com 1 bolinha quicando (cada batida na borda = +1),
   relógio com ponteiro girando, quebra-quadrados (`quebra.py`). Ideias novas: estrela, losango, pentágono, cruz de bastões,
   bastões de tamanhos diferentes, engrenagens de 3 dentes, velocidades diferentes, paletas novas.
+- **TODO TEXTO DENTRO DO VÍDEO EM INGLÊS** (pedido do dono, 08/11).
 - **NÃO pedir para adivinhar** quantas bolinhas (o dono não quer). Gancho no 1º segundo é uma
-  frase do que acontece ("4 BASTÕES MULTIPLICANDO BOLINHAS", "1 BOLINHA vs 108 QUADRADOS").
-  Contador ao vivo de bolinhas. Embaixo: "Segue a página pra ver mais!". Tela final:
-  "N BOLINHAS!", "Gostou? SEGUE A PÁGINA!", "Curte e compartilha com alguém".
+  frase em inglês do que acontece ("4 SPINNING BARS MULTIPLYING BALLS", "1 BALL vs 108 BLOCKS").
+  Contador ao vivo ("N BALLS"). Embaixo: "Follow for more!". Tela final:
+  "N BALLS!", "Liked it? FOLLOW US!", "Share it with a friend" (já no motor).
 - Nada de luz piscando rápido (epilepsia).
 
 ## Estilo visual (a partir dos vídeos de 2026-11-10) — referência que o dono mandou
@@ -91,7 +92,7 @@ mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
 
 ## Legendas — EM INGLÊS (pedido do dono, 08/11: os perfis com engajamento usam inglês)
 - Legenda, título do YouTube, `tiktokData.title` e hashtags **em inglês**, relacionados ao vídeo.
-  (O texto DENTRO do vídeo continua em português.)
+  (O texto DENTRO do vídeo também é em inglês.)
 - Instagram/TikTok: 1ª linha = gancho com emoji (what happens); 2ª = como termina (💥, sem dar
   número); 3ª = CTA variado ("Follow for more ❤️", "Send this to someone you love ❤️",
   "Follow to see the next one ❤️"). **No máximo 3 hashtags** em inglês, relacionadas ao vídeo,
