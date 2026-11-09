@@ -280,14 +280,17 @@ class Rend:
         f = img.astype(np.float32)
         nleft = int(fr["alive"].sum())
         if not ex:
-            put_text(f, f"1 BALL vs {info['nb']} BLOCKS", 40, W / 2, 92, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
+            put_text(f, f"1 BALL vs {info['nb']} BLOCKS", 40, W / 2, 84, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
+            put_text(f, f"1 bolinha contra {info['nb']} quadrados", 22, W / 2, 122, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
             put_text(f, f"BLOCKS: {nleft}", 30, W / 2 - 160, 175, (120, 200, 255), stroke=4, stroke_col=(20, 15, 20))
             put_text(f, f"BALLS: {len(fr['pos'])}", 30, W / 2 + 160, 175, cur, stroke=4, stroke_col=(20, 15, 20))
             if fr["t_clear"] is not None:
                 put_text(f, "ABOUT TO EXPLODE!", 50, W / 2, ar.bottom + 70, (60, 60, 255), stroke=5, stroke_col=(255, 255, 255),
                          scale=1 + 0.06 * math.sin(t * 14))
+                put_text(f, "Vai explodir!", 26, W / 2, ar.bottom + 116, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
             else:
                 put_text(f, "Follow for more!", 30, W / 2, ar.bottom + 62, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40))
+                put_text(f, "Segue a página pra ver mais", 22, W / 2, ar.bottom + 96, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
         img = np.clip(f, 0, 255).astype(np.uint8)
         if ex:
             te = t - fr["t_expl"]
@@ -301,11 +304,13 @@ class Rend:
                 sc = ease_out_back(min(1.0, (te - 0.7) / 0.4)) if te > 0.7 else 0.05
                 blit(f, *emoji("\U0001F4A5", int(150 * max(0.1, sc))), int(W / 2 - 75 * max(0.1, sc)), int(520 - 75 * max(0.1, sc)))
                 put_text(f, "ALL BROKEN!", 66, W / 2, 680, cur, stroke=6, stroke_col=(255, 255, 255), scale=max(0.05, sc))
+                put_text(f, "Tudo quebrado!", 30, W / 2, 742, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40), scale=max(0.05, sc))
                 if te > 1.3:
                     a_ = min(1, (te - 1.3) / 0.3)
-                    put_text(f, "Liked it? FOLLOW US!", 44, W / 2, 790, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
-                    put_text(f, "Share it with a friend", 32, W / 2, 852, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
-                    put_text(f, "New satisfying videos every day", 28, W / 2, 900, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
+                    put_text(f, "Liked it? FOLLOW US!", 44, W / 2, 805, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
+                    put_text(f, "Gostou? Segue a página!", 24, W / 2, 846, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
+                    put_text(f, "Share it with a friend", 32, W / 2, 900, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
+                    put_text(f, "Compartilha com alguém", 22, W / 2, 936, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40), alpha=a_)
                 img = np.clip(f, 0, 255).astype(np.uint8)
             shake = max(0.0, 18 * (1 - te / 0.7))
         elif fr["t_clear"] is not None:

@@ -30,7 +30,12 @@ e o `historico.md` inteiros antes de criar qualquer coisa, e atualize o `histori
   retângulo com 2 bastões gigantes, círculo com 1 bolinha quicando (cada batida na borda = +1),
   relógio com ponteiro girando, quebra-quadrados (`quebra.py`). Ideias novas: estrela, losango, pentágono, cruz de bastões,
   bastões de tamanhos diferentes, engrenagens de 3 dentes, velocidades diferentes, paletas novas.
-- **TODO TEXTO DENTRO DO VÍDEO EM INGLÊS** (pedido do dono, 08/11).
+- **TEXTO DENTRO DO VÍDEO BILÍNGUE** (pedido do dono, 09/11): INGLÊS GRANDE em cima e
+  PORTUGUÊS MENOR logo embaixo (cinza-claro). O motor já faz isso: em cada config ponha
+  `hook` (inglês) + `hook_pt` (português); "Follow for more!"/"Segue a página pra ver mais",
+  "ABOUT TO EXPLODE!"/"Vai explodir!", "N BALLS!"/"N bolinhas!", "Liked it? FOLLOW US!"/
+  "Gostou? Segue a página!", "Share it with a friend"/"Compartilha com alguém".
+  Motores novos devem seguir o mesmo padrão.
 - **NÃO pedir para adivinhar** quantas bolinhas (o dono não quer). Gancho no 1º segundo é uma
   frase em inglês do que acontece ("4 SPINNING BARS MULTIPLYING BALLS", "1 BALL vs 108 BLOCKS").
   Contador ao vivo ("N BALLS"). Embaixo: "Follow for more!". Tela final:
@@ -92,10 +97,10 @@ mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
 
 ## Legendas — EM INGLÊS (pedido do dono, 08/11: os perfis com engajamento usam inglês)
 - Legenda, título do YouTube, `tiktokData.title` e hashtags **em inglês**, relacionados ao vídeo.
-  (O texto DENTRO do vídeo também é em inglês.)
+  (O texto DENTRO do vídeo é bilíngue: inglês grande + português pequeno embaixo.)
 - Instagram/TikTok: 1ª linha = gancho com emoji (what happens); 2ª = como termina (💥, sem dar
   número); 3ª = CTA variado ("Follow for more ❤️", "Send this to someone you love ❤️",
-  "Follow to see the next one ❤️"). **No máximo 3 hashtags** em inglês, relacionadas ao vídeo,
+  "Follow to see the next one ❤️"). **No máximo 3 hashtags (NUNCA mais que 3)** em inglês, relacionadas ao vídeo,
   e **sem repetir** hashtags entre os posts do dia (ex.: #satisfying #physics #bouncingball;
   #brickbreaker #satisfyingvideo #blocks; #gears #triangle #funphysics).
 - YouTube: título curto em inglês com emojis, sem hashtags (≤ 100 caracteres); tags em inglês.

@@ -781,15 +781,19 @@ class Renderer:
             hk = self.cfg.get("hook", "WATCH IT MULTIPLY!"); hs = 42
             while hs > 24 and ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(hk, font=ImageFont.truetype(FONT_B, hs)) > 670:
                 hs -= 2
-            put_text(f, hk, hs, W / 2, 92, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
-            blit(f, *emoji("\U0001F447", 40), int(W / 2 - 20), int(128 + 4 * math.sin(t * 6)))
+            put_text(f, hk, hs, W / 2, 84, (255, 255, 255), stroke=4, stroke_col=(30, 20, 40))
+            if self.cfg.get("hook_pt"):
+                put_text(f, self.cfg["hook_pt"], 24, W / 2, 124, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
+            blit(f, *emoji("\U0001F447", 34), int(W / 2 - 17), int(146 + 4 * math.sin(t * 6)))
             mn = self.cfg.get("theme") == "minimal"
             put_text(f, (f"{fr['n']} BALLS" if fr['n'] != 1 else "1 BALL"), 40 if mn else 54, W / 2, max(205, top - 75),
                      (235, 235, 235) if mn else cur, stroke=0 if mn else 5, stroke_col=(20, 15, 20))
             if fr["t_over"] is not None:
                 put_text(f, "ABOUT TO EXPLODE!", 50, W / 2, ar.bottom + 70, (60, 60, 255), stroke=5, stroke_col=(255, 255, 255), scale=1 + 0.08 * math.sin(t * 18))
+                put_text(f, "Vai explodir!", 26, W / 2, ar.bottom + 116, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
             else:
                 put_text(f, "Follow for more!", 30, W / 2, ar.bottom + 62, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40))
+                put_text(f, "Segue a página pra ver mais", 22, W / 2, ar.bottom + 96, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40))
         img = np.clip(f, 0, 255).astype(np.uint8)
         if ex:
             te = t - fr["t_expl"]
@@ -803,10 +807,12 @@ class Renderer:
                 sc = ease_out_back(min(1.0, (te - 0.7) / 0.4)) if te > 0.7 else 0.05
                 blit(f, *emoji("\U0001F4A5", int(150 * max(0.1, sc))), int(W / 2 - 75 * max(0.1, sc)), int(520 - 75 * max(0.1, sc)))
                 put_text(f, f"{st['final']} BALLS!", 70, W / 2, 680, cur, stroke=6, stroke_col=(255, 255, 255), scale=max(0.05, sc))
+                put_text(f, f"{st['final']} bolinhas!", 30, W / 2, 742, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40), scale=max(0.05, sc))
                 if te > 1.3:
-                    put_text(f, "Liked it? FOLLOW US!", 44, W / 2, 790, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
-                    put_text(f, "Share it with a friend", 32, W / 2, 852, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
-                    put_text(f, "New satisfying videos every day", 28, W / 2, 900, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.6) / 0.3) if te > 1.6 else 0.0)
+                    put_text(f, "Liked it? FOLLOW US!", 44, W / 2, 805, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
+                    put_text(f, "Gostou? Segue a página!", 24, W / 2, 846, (200, 205, 215), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
+                    put_text(f, "Share it with a friend", 32, W / 2, 900, (200, 230, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.3) / 0.3))
+                    put_text(f, "Compartilha com alguém", 22, W / 2, 936, (255, 255, 255), stroke=3, stroke_col=(30, 20, 40), alpha=min(1, (te - 1.6) / 0.3) if te > 1.6 else 0.0)
                 img = np.clip(f, 0, 255).astype(np.uint8)
             shake = max(0.0, 18 * (1 - te / 0.7))
         elif fr["t_over"] is not None:
@@ -904,33 +910,33 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
-    "minimal_roda_raios": dict(shape="circle", mech="rods", palette="manchas", theme="minimal", inherit=True, seeds=4, hook="THE WHEEL THAT MULTIPLIES",
+    "minimal_roda_raios": dict(shape="circle", mech="rods", palette="manchas", theme="minimal", inherit=True, seeds=4, hook="THE WHEEL THAT MULTIPLIES", hook_pt="A roda que multiplica",
                                rods=dict(rods=[dict(off=(0, 0), L=250, w=1.3, phase=k * 2 * math.pi / 5, half=True) for k in range(5)],
                                          col=(200, 205, 210), th=10.0), scale="maior", t_full=30.0),
-    "circulo_quica": dict(shape="circle", mech="bounce", palette="vivo", hook="EVERY BOUNCE = +1 BALL", bg=(25, 35, 60),
+    "circulo_quica": dict(shape="circle", mech="bounce", palette="vivo", hook="EVERY BOUNCE = +1 BALL", hook_pt="Cada batida = +1 bolinha", bg=(25, 35, 60),
                           scale="maior", t_full=30.0, cool=0.6, maxper=2),
-    "relogio_ponteiro": dict(shape="circle", mech="rods", palette="neon", hook="THE CLOCK THAT MULTIPLIES BALLS", bg=(40, 30, 20),
+    "relogio_ponteiro": dict(shape="circle", mech="rods", palette="neon", hook="THE CLOCK THAT MULTIPLIES BALLS", hook_pt="O relógio que multiplica bolinhas", bg=(40, 30, 20),
                              rods=dict(rods=[dict(off=(0, 0), L=268, w=1.6, phase=-math.pi / 2, half=True)], col=(230, 230, 240), th=14.0, marks=298),
                              scale="menor", t_full=30.0),
-    "quadrado_4bastoes": dict(shape="square", mech="rods", palette="vivo", hook="4 SPINNING BARS MULTIPLYING BALLS", bg=(40, 22, 30),
+    "quadrado_4bastoes": dict(shape="square", mech="rods", palette="vivo", hook="4 SPINNING BARS MULTIPLYING BALLS", hook_pt="4 bastões multiplicando bolinhas", bg=(40, 22, 30),
                               rods=dict(rods=[dict(off=(-150, -150), L=112, w=2.1, phase=0.0), dict(off=(150, -150), L=112, w=-2.1, phase=0.0),
                                               dict(off=(150, 150), L=112, w=2.1, phase=math.pi / 2), dict(off=(-150, 150), L=112, w=-2.1, phase=math.pi / 2)],
                                         col=(210, 210, 220)), scale="maior", t_full=30.0),
-    "coracao_2bastoes": dict(shape="heart", mech="rods", palette="doce", hook="THE HEART FILLS UP UNTIL IT EXPLODES", bg=(60, 20, 50), RB=8.5,
+    "coracao_2bastoes": dict(shape="heart", mech="rods", palette="doce", hook="THE HEART FILLS UP UNTIL IT EXPLODES", hook_pt="O coração enche até explodir", bg=(60, 20, 50), RB=8.5,
                              rods=dict(rods=[dict(off=(-160, -45), L=108, w=2.3, phase=0.4), dict(off=(160, -45), L=108, w=-2.3, phase=-0.4)],
                                        col=(225, 205, 255)), scale="maior", t_full=30.0),
-    "circulo_4bastoes": dict(shape="circle", mech="rods", palette="neon", hook="WAIT FOR THE ENDING!", bg=(50, 20, 40),
+    "circulo_4bastoes": dict(shape="circle", mech="rods", palette="neon", hook="WAIT FOR THE ENDING!", hook_pt="Espera até o final!", bg=(50, 20, 40),
                              rods=dict(rods=[dict(off=(0, -150), L=100, w=2.4, phase=0.0), dict(off=(150, 0), L=100, w=-2.4, phase=0.0),
                                              dict(off=(0, 150), L=100, w=2.4, phase=0.0), dict(off=(-150, 0), L=100, w=-2.4, phase=0.0)],
                                        col=(120, 230, 160)), scale="menor", t_full=30.0),
-    "hexagono_3bastoes": dict(shape="hexagon", mech="rods", palette="vivo", hook="3 BARS SPINNING NONSTOP", bg=(30, 30, 60),
+    "hexagono_3bastoes": dict(shape="hexagon", mech="rods", palette="vivo", hook="3 BARS SPINNING NONSTOP", hook_pt="3 bastões girando sem parar", bg=(30, 30, 60),
                               rods=dict(rods=[dict(off=(140 * math.cos(a), 140 * math.sin(a)), L=104, w=2.2 * (1 if i % 2 == 0 else -1), phase=a)
                                               for i, a in enumerate([-math.pi / 2, math.pi / 6, 5 * math.pi / 6])],
                                         col=(230, 200, 120)), scale="maior", t_full=30.0),
-    "triangulo_engrenagens": dict(shape="triangle", mech="gears", palette="neon", hook="GEARS MULTIPLYING BALLS", bg=(20, 30, 55), cy=600,
+    "triangulo_engrenagens": dict(shape="triangle", mech="gears", palette="neon", hook="GEARS MULTIPLYING BALLS", hook_pt="Engrenagens multiplicando bolinhas", bg=(20, 30, 55), cy=600,
                                   gears=dict(axis_deg=0, Rc=50.0, colA=(60, 160, 255), colB=(230, 200, 120), omega=1.5, teeth=12),
                                   scale="menor", RB=8.0, fill=0.88, t_full=31.0),
-    "retangulo_2bastoes": dict(shape="rounded", mech="rods", palette="doce", hook="2 GIANT SPINNING BARS", bg=(20, 40, 30),
+    "retangulo_2bastoes": dict(shape="rounded", mech="rods", palette="doce", hook="2 GIANT SPINNING BARS", hook_pt="2 bastões gigantes girando", bg=(20, 40, 30),
                                rods=dict(rods=[dict(off=(0, -165), L=150, w=1.9, phase=0.0), dict(off=(0, 165), L=150, w=-1.9, phase=0.0)],
                                          col=(200, 220, 240), th=18.0), scale="menor", t_full=30.0),
     "engrenagens_circulo": dict(shape="circle", mech="gears", palette="vivo", hook="WATCH IT MULTIPLY!",
