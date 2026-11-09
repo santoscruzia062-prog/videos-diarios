@@ -89,12 +89,16 @@ mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
 - Se o Metricool recusar por limite do plano ou outro erro: não insista em loop; registre no
   `historico.md` e no resumo final.
 
-## Legendas (português do Brasil)
-- Instagram/TikTok: 1ª linha = gancho com emoji (o que acontece); 2ª = como termina (💥 sem dar
-  número); 3ª = "Segue a página pra ver mais ❤️" (variar a frase). **No máximo 3 hashtags**,
-  relacionadas ao vídeo, e **não repetir** as mesmas hashtags entre os posts do dia.
-- YouTube: título curto com emojis, sem hashtags no título (≤ 100 caracteres); tags do tema.
-- TikTok `title`: versão curta do título.
+## Legendas — EM INGLÊS (pedido do dono, 08/11: os perfis com engajamento usam inglês)
+- Legenda, título do YouTube, `tiktokData.title` e hashtags **em inglês**, relacionados ao vídeo.
+  (O texto DENTRO do vídeo continua em português.)
+- Instagram/TikTok: 1ª linha = gancho com emoji (what happens); 2ª = como termina (💥, sem dar
+  número); 3ª = CTA variado ("Follow for more ❤️", "Send this to someone you love ❤️",
+  "Follow to see the next one ❤️"). **No máximo 3 hashtags** em inglês, relacionadas ao vídeo,
+  e **sem repetir** hashtags entre os posts do dia (ex.: #satisfying #physics #bouncingball;
+  #brickbreaker #satisfyingvideo #blocks; #gears #triangle #funphysics).
+- YouTube: título curto em inglês com emojis, sem hashtags (≤ 100 caracteres); tags em inglês.
+- TikTok `title`: versão curta do título em inglês.
 - Nunca entregue o número final na legenda.
 
 ## Commits
