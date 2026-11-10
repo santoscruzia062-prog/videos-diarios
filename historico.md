@@ -85,3 +85,8 @@ girando, quadrado vazado girando no centro, semicírculos nas laterais, portais 
 - "Quantas bolinhas tem?" (palpite nos comentários, resposta no fim)
 - Corrida de bolinhas dos países (pista/Plinko com placar)
 - Ilusões de ótica sem flashes
+
+## Cortes de stand-up (agendados à parte, 10/11)
+- O dono também posta CORTES de stand-up (em português, capa própria, vídeo limpo) nos intervalos
+  dos vídeos de bolinha: **09:15, 10:45, 14:45 e 17:15**. Não agendar bolinhas nesses horários.
+- Já agendados: 10/11 às 19:30 e 20:15; 11/11 e 12/11 às 09:15, 10:45, 14:45, 17:15 (show "Só Cantadas").
