@@ -41,6 +41,9 @@ e o `historico.md` inteiros antes de criar qualquer coisa, e atualize o `histori
   Contador ao vivo ("N BALLS"). Embaixo: "Follow for more!". Tela final:
   "N BALLS!", "Liked it? FOLLOW US!", "Share it with a friend" (já no motor).
 - Nada de luz piscando rápido (epilepsia).
+- **Som (estudo das referências, 10/11 — já no motor `make_audio`)**: impacto/whoosh no 1º
+  segundo, batida (bumbo+chimbal) que ACELERA de ~96 a ~180 BPM até o fim, estalos de bolinhas
+  ficando mais densos, pausa de 0,25 s antes do boom, depois boom forte + brilhos. Não tirar.
 
 ## Estilo visual (a partir dos vídeos de 2026-11-10) — referência que o dono mandou
 Inspirado em canais de "satisfying physics" (ex.: o que o dono mostrou, 28–30 mi de views),
@@ -113,6 +116,10 @@ mas com tudo próprio (nunca copiar nome, logo ou vídeo de ninguém):
 - YouTube: título curto em inglês com emojis, sem hashtags (≤ 100 caracteres); tags em inglês.
 - TikTok `title`: versão curta do título em inglês.
 - Nunca entregue o número final na legenda.
+- **Escrever NATURAL, como gente** (pedido do dono, 10/11): frases curtas, minúsculas, tom de
+  conversa, poucos emojis (0–2), nada de fórmula repetida tipo "…until it EXPLODES 💥". Ex.:
+  "it starts at 10 rpm and just keeps getting faster / by the end it's pure chaos 😅 /
+  send this to someone who needs to relax". Variar o CTA (tag someone, sound on, good night…).
 
 ## Commits
 Termine as mensagens de commit com:

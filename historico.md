@@ -5,12 +5,12 @@ dos últimos 7 dias.
 
 | Data | Horário | Formato | Tema | Formato da arena | Resultado |
 |---|---|---|---|---|---|
-| 2026-11-10 | 21:00 | bolinhas multiplicando (bolas.py, pieces, minimal) | quadrado vazado girando no centro (estrela_quadrado) | estrela | agendado |
-| 2026-11-10 | 18:30 | bolinhas multiplicando (bolas.py, bounce) | 1 bolinha quicando, cada batida +1 (triangulo_quica) | triângulo | agendado |
-| 2026-11-10 | 16:00 | bolinhas multiplicando (bolas.py, pieces, minimal) | rotor com 2 pás em cunha (rotor_cunhas) | octógono | agendado |
-| 2026-11-10 | 13:30 | quebra-quadrados (quebra.py, k=4.4) | 1 bolinha vs 84 quadrados (quebra_circulo) | círculo | agendado |
-| 2026-11-10 | 11:30 | bolinhas multiplicando (bolas.py, pieces, minimal) | moldura retangular girando com aberturas (moldura_girando) | círculo | agendado |
-| 2026-11-10 | 10:00 | duelo com itens (duelo_itens.py) | 🇺🇸 USA vs BRAZIL 🇧🇷 (Brasil vira e vence) | círculo | agendado |
+| 2026-11-10 | 21:00 | refeito de manhã (ref. pasta do dono) — pieces minimal | 3 braços + 2 prensas (pentagono_rotor) | pentágono | agendado |
+| 2026-11-10 | 18:30 | refeito — pieces minimal, manchas | losango aberto girando (diamante_aberto) | círculo | agendado |
+| 2026-11-10 | 16:00 | refeito — pieces minimal, manchas | 4 arcos entrando pelos cantos (quadrado_arcos) | quadrado | agendado |
+| 2026-11-10 | 13:30 | refeito — pieces minimal | colchetes no trilho (colchetes_trilho) | círculo | agendado |
+| 2026-11-10 | 11:30 | refeito — pieces minimal, accel + RPM | barra que acelera 10→54 RPM (acelera_martelo) | círculo | agendado |
+| 2026-11-10 | 10:00 | refeito — pieces minimal | X no meio + setas dos lados (octogono_x_setas) | octógono | agendado |
 | 2026-11-10 | 08:30 | bolinhas multiplicando (bolas.py, pieces/prensas, minimal azul-marinho) | 4 prensas metálicas (prensas_4) | círculo | agendado |
 | 2026-11-10 | 07:00 | bolinhas multiplicando (bolas.py, rods, minimal) | roda de 5 raios (minimal_roda_raios) | círculo | agendado |
 | 2026-11-09 | 21:00 | bolinhas multiplicando (bolas.py, rods) | 3 bastões girando | hexágono | agendado |
@@ -30,6 +30,13 @@ dos últimos 7 dias.
 | 2026-11-07 | — | multiplicação | 🤑 dinheiro; ❤️ corações; bolinhas coloridas | quadrado; círculo | — |
 
 ## Referências do dono (PRIORIDADE — usar 2–3 por noite, misturando com o nosso estilo)
+Ref. 3 (10/11, 10 vídeos na pasta do PC do dono "EDITOR DE VIDEO IA/REFERENCIAS"): fundo preto puro,
+arena com linha branca fina, peças cinza que SAEM para fora da arena (trilhos, braços, arcos),
+cores que "tomam conta" em ondas, final com a arena sumindo e as bolinhas voando. Ideias ainda não
+feitas: corrida de 4 cores "Which color clears the arena first?" quebrando blocos; anéis
+concêntricos de bolinhas sendo "contaminados" por uma bolinha branca (vídeo curto, 15 s);
+octógono com zonas x5/x20/BIG/SMALL que mudam a bolinha; "Every smash speeds up" com RPM subindo.
+Evitar: "#" que cruza (cria compartimentos vazios) e raios longos lentos (deixam buracos).
 **✅ FEITO em 09/11 (vídeo de 10/11 10:00, `motor/duelo_itens.py`): 🇺🇸 USA vs BRAZIL 🇧🇷 — duelo com itens.** Dá para reaproveitar o motor para outros pares de bandeiras/animais (editar `CONFIGS`/`script`).
 Código novo (ex.: `motor/duelo_itens.py`, pode reaproveitar partes de `arena.py`/`bolas.py`):
 - Círculo com linha branca fina, fundo azul-marinho escuro com grade sutil.
