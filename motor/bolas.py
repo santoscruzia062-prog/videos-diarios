@@ -1096,6 +1096,14 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
+    "pentagono_rotor": dict(shape="pentagon", mech="pieces", palette="neon", theme="minimal", seeds=3, RB=6.5, maxper=4,
+                            hook="3 ARMS SPINNING, 2 PRESSES SLAMMING", hook_pt="3 braços girando, 2 prensas batendo",
+                            pieces=dict(col=(178, 182, 190), pieces=[
+                                dict(pts=[(0, 0), (112, 0)], closed=False, th=13, w=1.4, phase=k * 2 * math.pi / 3) for k in range(3)] + [
+                                dict(off=(300 * math.cos(a), 300 * math.sin(a)), pts=[(-60 * math.sin(a), 60 * math.cos(a)), (60 * math.sin(a), -60 * math.cos(a))],
+                                     closed=False, th=16, press=dict(dir=(-math.cos(a), -math.sin(a)), amp=120, period=1.7, ph=ph))
+                                for a, ph in ((math.radians(210), 0.0), (math.radians(330), 0.5))]),
+                            scale="maior", t_full=30.0),
     "diamante_aberto": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=4, RB=7.0, fill=0.9,
                             hook="A DIAMOND THAT NEVER STOPS", hook_pt="Um losango que não para",
                             pieces=dict(hub=False, col=(196, 199, 206), pieces=[
