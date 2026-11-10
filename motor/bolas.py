@@ -1096,6 +1096,19 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
+    "diamante_aberto": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=4, RB=7.0, fill=0.9,
+                            hook="A DIAMOND THAT NEVER STOPS", hook_pt="Um losango que não para",
+                            pieces=dict(hub=False, col=(196, 199, 206), pieces=[
+                                dict(pts=[(sx * 120, -88), (sx * 120, 88)] if k < 2 else [(-88, sy * 120), (88, sy * 120)], closed=False, th=13, w=0.95, phase=math.pi / 4)
+                                for k, (sx, sy) in enumerate(((1, 0), (-1, 0), (0, 1), (0, -1)))]),
+                            scale="maior", t_full=30.0),
+    "roda_curta": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=5, RB=7.0, fill=0.9,
+                       hook="THE WHEEL VS THE HAMMER", hook_pt="A roda contra o martelo",
+                       pieces=dict(col=(200, 210, 120), pieces=[
+                           dict(pts=[(32, 0), (170, 0)], closed=False, th=8, w=1.3, phase=k * 2 * math.pi / 5) for k in range(5)] + [
+                           dict(pts=[(0, 0), (250, 0)], closed=False, th=12, w=-1.7),
+                           dict(pts=[(250, -34), (250, 34)], closed=False, th=15, w=-1.7)]),
+                       scale="menor", t_full=30.0),
     # ----- 10/11 (refeitos a partir das referências da pasta do dono) -----
     "acelera_martelo": dict(shape="circle", mech="pieces", palette="vivo", theme="minimal", seeds=1, RB=6.5, maxper=4, rpm=0,
                             hook="EVERY SECOND IT SPINS FASTER", hook_pt="A cada segundo gira mais rápido",
