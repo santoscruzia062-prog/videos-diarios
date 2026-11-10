@@ -329,7 +329,11 @@ class Pieces:
         return pr["amp"] * x
 
     def world(self, pc, t):
-        a = pc.get("phase", 0.0) + pc.get("w", 0.0) * t
+        w0 = pc.get("w", 0.0); k = pc.get("accel", 0.0)
+        if k:
+            a = pc.get("phase", 0.0) + w0 * (math.exp(k * t) - 1) / k; w0 = w0 * math.exp(k * t)
+        else:
+            a = pc.get("phase", 0.0) + w0 * t
         R = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
         pv = self.C + np.array(pc.get("off", (0, 0)), float)
         tr = np.zeros(2); vt = np.zeros(2)
@@ -338,7 +342,7 @@ class Pieces:
             d0 = self.press_d(pr, t); d1 = self.press_d(pr, t + 0.004)
             tr = dv * d0; vt = dv * (d1 - d0) / 0.004
         pts = pv + tr + (R @ np.array(pc["pts"], float).T).T
-        return pts, pv + tr, vt, pc.get("w", 0.0)
+        return pts, pv + tr, vt, w0
 
     def segs(self, t):
         out = []
@@ -925,6 +929,9 @@ class Renderer:
             blit(f, *emoji("\U0001F447", 34), int(W / 2 - 17), int(146 + 4 * math.sin(t * 6)))
             mn = self.cfg.get("theme") == "minimal"
             ctxt = str(fr['n']) if self.cfg.get("num_only") else (f"{fr['n']} BALLS" if fr['n'] != 1 else "1 BALL")
+            if self.cfg.get("rpm") is not None and hasattr(self.mech, "world"):
+                _, _, _, wv = self.mech.world(self.mech.pieces[self.cfg["rpm"]], t)
+                ctxt = f"{abs(wv) * 60 / (2 * math.pi):.0f} RPM"
             put_text(f, ctxt, (64 if self.cfg.get("num_only") else 40) if mn else 54, W / 2, max(205, top - 75),
                      (235, 235, 235) if mn else cur, stroke=0 if mn else 5, stroke_col=(20, 15, 20))
             if fr["t_over"] is not None:
@@ -1040,6 +1047,46 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
         seg = s[: N - i0]
         pan = {"tick": 0.2, "tock": -0.2}.get(kind, 0.0)
         out[i0:i0 + len(seg), 0] += seg * (1 - pan); out[i0:i0 + len(seg), 1] += seg * (1 + pan)
+    # ---- camada "drive" (estudo das referências: som presente desde o 1º segundo, ritmo que
+    # ACELERA até o fim, densidade de estalos crescendo junto com as bolinhas, pausa antes do boom)
+    tb = [t for (t, k, v) in events if k == "boom"]
+    t_boom = tb[0] if tb else dur - 3
+    drv = np.zeros(N, np.float32)
+    def put(x, t0, g):
+        i0 = int(t0 * SR)
+        if 0 <= i0 < N:
+            seg = x[: N - i0]; drv[i0:i0 + len(seg)] += seg * g
+    nk = int(SR * 0.22); tk = tt(nk)
+    kick = np.sin(2 * np.pi * np.cumsum(48 + 110 * np.exp(-tk / 0.03)) / SR) * env(nk, 0.11)
+    nh = int(SR * 0.05); hat = lfilter([1, -1], [1, -0.3], rng.normal(0, 1, nh)) * env(nh, 0.008) * 0.25
+    # gancho sonoro no 1º segundo: "whoosh" + impacto
+    nw = int(SR * 0.5); tw = tt(nw)
+    whoosh = lfilter([0.15], [1, -0.85], rng.normal(0, 1, nw)) * (tw / 0.5) ** 2 * 1.6
+    put(whoosh, 0.0, 0.5); put(kick * 1.3, 0.5, 0.9); put(base["plim"], 0.5, 0.35)
+    t_end = max(4.0, t_boom - 1.05)
+    t = 0.5
+    while t < t_end:
+        fr = t / t_end
+        bpm = 96 + 84 * fr ** 1.4
+        beat = 60.0 / bpm
+        put(kick, t, 0.30 + 0.35 * fr)
+        put(hat, t + beat / 2, 0.25 + 0.45 * fr)
+        if fr > 0.55:
+            put(hat, t + beat / 4, 0.18 * fr); put(hat, t + 3 * beat / 4, 0.18 * fr)
+        t += beat
+    # estalos de bolinhas (marble crackle) com densidade crescente
+    nc = int(SR * 0.012); tc_ = tt(nc)
+    t = 0.6
+    while t < t_boom - 0.3:
+        rate = min(45.0, 1.5 * math.exp(t / 8.5))
+        f0 = rng.uniform(2200, 5200)
+        put(np.sin(2 * np.pi * f0 * tc_) * env(nc, 0.0025), t, rng.uniform(0.04, 0.10))
+        t += rng.exponential(1.0 / rate)
+    # respiro: silencia o "drive" 0,25 s antes do boom (tensão), o riser segue
+    i0 = int((t_boom - 0.25) * SR)
+    if 0 < i0 < N:
+        drv[i0:] = 0
+    out[:, 0] += drv; out[:, 1] += drv
     for d, g in ((0.05, 0.22), (0.12, 0.13), (0.21, 0.07)):
         k = int(d * SR); out[k:] += out[:-k].copy() * g
     out /= np.abs(out).max() / 0.9
@@ -1049,6 +1096,51 @@ def make_audio(events, dur, path, scale_name="maior", seed=3):
 
 # ======================= CLI =======================
 CONFIGS = {
+    # ----- 10/11 (refeitos a partir das referências da pasta do dono) -----
+    "acelera_martelo": dict(shape="circle", mech="pieces", palette="vivo", theme="minimal", seeds=1, RB=6.5, maxper=4, rpm=0,
+                            hook="EVERY SECOND IT SPINS FASTER", hook_pt="A cada segundo gira mais rápido",
+                            pieces=dict(col=(190, 194, 200), pieces=[
+                                dict(pts=[(-262, 0), (262, 0)], closed=False, th=12, w=1.05, accel=0.046),
+                                dict(pts=[(205, -34), (205, 34)], closed=False, th=14, w=1.05, accel=0.046),
+                                dict(pts=[(-205, -34), (-205, 34)], closed=False, th=14, w=1.05, accel=0.046)]),
+                            scale="maior", t_full=30.0),
+    "colchetes_trilho": dict(shape="circle", mech="pieces", palette="neon", theme="minimal", seeds=3, RB=6.5, maxper=4,
+                             hook="THE CLAMPS THAT MULTIPLY", hook_pt="As garras que multiplicam",
+                             pieces=dict(hub=False, col=(175, 180, 188), pieces=[
+                                 dict(off=(-170, 0), pts=[(10, -72), (-30, -72), (-30, 72), (10, 72)], closed=False, th=14, press=dict(dir=(1, 0), amp=130, period=1.6, ph=0.0)),
+                                 dict(off=(170, 0), pts=[(-10, -72), (30, -72), (30, 72), (-10, 72)], closed=False, th=14, press=dict(dir=(-1, 0), amp=130, period=1.6, ph=0.0)),
+                                 dict(pts=[(-300, 0), (300, 0)], closed=False, th=8)]),
+                             scale="menor", t_full=30.0),
+    "quadrado_arcos": dict(shape="square", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=5, RB=7.0, seed_r=150,
+                           hook="4 ARCS SWINGING INTO THE BOX", hook_pt="4 arcos entrando na caixa",
+                           pieces=dict(hub=False, col=(170, 174, 182), pieces=[
+                               dict(off=(sx * 310, sy * 310), pts=[(150 * math.cos(a), 150 * math.sin(a)) for a in np.linspace(0, math.pi, 14)],
+                                    closed=False, th=13, w=0.9 * sx * sy, phase=ph)
+                               for (sx, sy, ph) in ((-1, -1, 0.0), (1, -1, 1.6), (1, 1, 3.1), (-1, 1, 4.7))]),
+                           scale="maior", t_full=30.0),
+    "octogono_x_setas": dict(shape="octagon", mech="pieces", palette="vivo", theme="minimal", seeds=3, RB=6.5, maxper=4,
+                             hook="AN X IN THE MIDDLE, ARROWS ON THE SIDES", hook_pt="Um X no meio e setas dos lados",
+                             pieces=dict(col=(178, 182, 190), pieces=[
+                                 dict(pts=[(-120, 0), (120, 0)], closed=False, th=13, w=1.25, phase=math.pi / 4),
+                                 dict(pts=[(-120, 0), (120, 0)], closed=False, th=13, w=1.25, phase=-math.pi / 4),
+                                 dict(off=(-300, 0), pts=[(-40, -75), (35, 0), (-40, 75)], closed=False, th=14, press=dict(dir=(1, 0), amp=120, period=1.8, ph=0.0)),
+                                 dict(off=(300, 0), pts=[(40, -75), (-35, 0), (40, 75)], closed=False, th=14, press=dict(dir=(-1, 0), amp=120, period=1.8, ph=0.5))]),
+                             scale="menor", t_full=30.0),
+    "jogo_da_velha": dict(shape="circle", mech="pieces", palette="vivo", theme="minimal", inherit=True, seeds=9, seed_r=215, RB=7.0, fill=0.9,
+                          hook="A GIANT # SPINNING", hook_pt="Um # gigante girando",
+                          pieces=dict(hub=False, col=(196, 199, 206), pieces=[
+                              dict(pts=[(-330, -105), (330, -105)], closed=False, th=12, w=0.7, phase=math.pi / 4),
+                              dict(pts=[(-330, 105), (330, 105)], closed=False, th=12, w=0.7, phase=math.pi / 4),
+                              dict(pts=[(-105, -330), (-105, 330)], closed=False, th=12, w=0.7, phase=math.pi / 4),
+                              dict(pts=[(105, -330), (105, 330)], closed=False, th=12, w=0.7, phase=math.pi / 4)]),
+                          scale="maior", t_full=30.0),
+    "roda_e_martelo": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=5, RB=7.0, fill=0.92, maxper=4,
+                           hook="THE WHEEL VS THE HAMMER", hook_pt="A roda contra o martelo",
+                           pieces=dict(col=(200, 210, 120), pieces=[
+                               dict(pts=[(32, 0), (268, 0)], closed=False, th=8, w=0.45, phase=k * 2 * math.pi / 5) for k in range(5)] + [
+                               dict(pts=[(0, 0), (238, 0)], closed=False, th=13, w=-1.1),
+                               dict(pts=[(238, -36), (238, 36)], closed=False, th=16, w=-1.1)]),
+                           scale="menor", t_full=30.0),
     "minimal_roda_raios": dict(shape="circle", mech="rods", palette="manchas", theme="minimal", inherit=True, seeds=4, hook="THE WHEEL THAT MULTIPLIES", hook_pt="A roda que multiplica",
                                rods=dict(rods=[dict(off=(0, 0), L=250, w=1.3, phase=k * 2 * math.pi / 5, half=True) for k in range(5)],
                                          col=(200, 205, 210), th=10.0), scale="maior", t_full=30.0),
