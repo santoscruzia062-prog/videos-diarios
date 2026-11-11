@@ -1233,6 +1233,43 @@ CONFIGS = {
     "triangulo_quica": dict(shape="triangle", mech="bounce", palette="neon", hook="1 BALL BOUNCING IN A TRIANGLE", hook_pt="1 bolinha quicando no triângulo",
                             bg=(55, 25, 45), RB=8.0, scale="menor", t_full=37.0, cool=1.5, maxper=1),
 
+    # ---- 2026-11-11 ----
+    "sanduiche_prensas": dict(shape="square", mech="pieces", palette="vivo", theme="minimal", seeds=3, bg_min=(30, 16, 8), grid=True,
+                              num_only=True, RB=6.0, maxper=5, fill=0.9, hook="2 GIANT PRESSES CLOSING LIKE A SANDWICH", hook_pt="2 prensas gigantes fechando como um sanduíche",
+                              pieces=dict(hub=False, col=(175, 180, 188), pieces=[
+                                  dict(off=(0, -265), pts=[(-200, -14), (200, -14), (200, 14), (-200, 14)], fill=True, th=8, press=dict(dir=(0, 1), amp=150, period=1.7, ph=0.0)),
+                                  dict(off=(0, 265), pts=[(-200, -14), (200, -14), (200, 14), (-200, 14)], fill=True, th=8, press=dict(dir=(0, -1), amp=150, period=1.7, ph=0.0))]),
+                              scale="menor", t_full=30.0),
+    "estrela_5bastoes": dict(shape="star", mech="rods", palette="manchas", theme="minimal", inherit=True, seeds=5, seed_r=120, RB=7.0,
+                             hook="5 BARS SPINNING INSIDE A STAR", hook_pt="5 bastões girando dentro da estrela",
+                             rods=dict(rods=[dict(off=(150 * math.cos(-math.pi / 2 + k * 2 * math.pi / 5), 40 + 150 * math.sin(-math.pi / 2 + k * 2 * math.pi / 5)),
+                                                  L=62, w=2.3 * (1 if k % 2 == 0 else -1), phase=k * 0.7) for k in range(5)],
+                                       col=(200, 205, 210), th=11.0), scale="maior", t_full=30.0),
+    "hastes_T": dict(shape="circle", mech="pieces", palette="manchas", theme="minimal", inherit=True, seeds=4, seed_r=150, RB=7.0, fill=0.9,
+                     hook="2 T-BARS SPINNING OPPOSITE WAYS", hook_pt="2 hastes em T girando em sentidos opostos",
+                     pieces=dict(hub=False, col=(192, 196, 204), pieces=[
+                         dict(off=(sx * 150, 0), pts=pts, closed=False, th=13, w=1.5 * sx, phase=ph)
+                         for sx, ph in ((-1, 0.0), (1, math.pi / 2)) for pts in ([(-20, 0), (125, 0)], [(125, -45), (125, 45)])]),
+                     scale="maior", t_full=30.0),
+    "semicirculos": dict(shape="hexagon", mech="pieces", palette="vivo", theme="minimal", seeds=3, RB=6.5, maxper=4,
+                         hook="2 HALF-CIRCLES SPINNING", hook_pt="2 meios-círculos girando",
+                         pieces=dict(hub=False, col=(180, 184, 192), pieces=[
+                             dict(off=(sx * 160, 0), pts=[(105 * math.cos(a), 105 * math.sin(a)) for a in np.linspace(0, math.pi, 16)],
+                                  closed=False, th=13, w=1.3 * sx, phase=ph) for sx, ph in ((-1, 0.0), (1, 1.5))]),
+                         scale="menor", t_full=30.0),
+    "relogio_2ponteiros": dict(shape="octagon", mech="rods", palette="neon", hook="A CLOCK WITH 2 HANDS MULTIPLYING BALLS", hook_pt="Um relógio de 2 ponteiros multiplicando bolinhas",
+                               bg=(45, 25, 30), rods=dict(rods=[dict(off=(0, 0), L=268, w=1.9, phase=-math.pi / 2, half=True),
+                                                                dict(off=(0, 0), L=165, w=0.7, phase=0.6, half=True)],
+                                                          col=(230, 230, 240), th=13.0, marks=290), scale="maior", t_full=30.0),
+    "cunhas_fixas": dict(shape="circle", mech="pieces", palette="vivo", theme="minimal", seeds=3, bg_min=(30, 16, 8), grid=True,
+                         num_only=True, RB=6.0, maxper=4, hook="6 METAL SPIKES + 1 SPINNING BAR", hook_pt="6 pontas de metal + 1 bastão girando",
+                         pieces=dict(col=(178, 182, 190), pieces=[
+                             dict(pts=[(-185, 0), (185, 0)], closed=False, th=12, w=1.6)] + [
+                             dict(pts=[(312 * math.cos(a - 0.17), 312 * math.sin(a - 0.17)), (222 * math.cos(a), 222 * math.sin(a)), (312 * math.cos(a + 0.17), 312 * math.sin(a + 0.17))],
+                                  fill=True, th=6) for a in [k * math.pi / 3 + math.pi / 6 for k in range(6)]]),
+                         scale="menor", t_full=30.0),
+    "quadrado_quica": dict(shape="square", mech="bounce", palette="vivo", hook="1 BALL BOUNCING IN A BOX", hook_pt="1 bolinha quicando na caixa",
+                           bg=(25, 40, 55), RB=8.0, scale="maior", t_full=34.0, cool=0.9, maxper=2),
 }
 
 

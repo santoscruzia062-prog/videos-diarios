@@ -5,6 +5,14 @@ dos últimos 7 dias.
 
 | Data | Horário | Formato | Tema | Formato da arena | Resultado |
 |---|---|---|---|---|---|
+| 2026-11-11 | 21:00 | pieces minimal azul-marinho (ref. 2) | 6 cunhas fixas na borda + 1 bastão girando (cunhas_fixas) | círculo | agendado |
+| 2026-11-11 | 18:30 | bolinhas multiplicando (bounce, colorido) | bolinha quicando, cada batida +1 (quadrado_quica) | quadrado | agendado |
+| 2026-11-11 | 16:00 | pieces minimal (ref. 1) | 2 semicírculos girando (semicirculos) | hexágono | agendado |
+| 2026-11-11 | 13:30 | bolinhas multiplicando (rods half, colorido) | relógio com 2 ponteiros (relogio_2ponteiros) | octógono | agendado |
+| 2026-11-11 | 11:30 | pieces minimal, manchas (ref. 2) | 2 hastes em T, sentidos opostos (hastes_T) | círculo | agendado |
+| 2026-11-11 | 10:00 | quebra-quadrados (quebra.py, k=4.4) | 1 bolinha vs 84 quadrados (quebra_circulo) | círculo | agendado |
+| 2026-11-11 | 08:30 | rods minimal, manchas | 5 bastões curtos (estrela_5bastoes) | estrela | agendado |
+| 2026-11-11 | 07:00 | pieces minimal azul-marinho (ref. 2) | 2 prensas largas em sanduíche (sanduiche_prensas) | quadrado | agendado |
 | 2026-11-10 | 21:00 | refeito de manhã (ref. pasta do dono) — pieces minimal | 3 braços + 2 prensas (pentagono_rotor) | pentágono | agendado |
 | 2026-11-10 | 18:30 | refeito — pieces minimal, manchas | losango aberto girando (diamante_aberto) | círculo | agendado |
 | 2026-11-10 | 16:00 | refeito — pieces minimal, manchas | 4 arcos entrando pelos cantos (quadrado_arcos) | quadrado | agendado |
@@ -60,21 +68,20 @@ branca fina, peças METÁLICAS cinza com sombra (visual de máquina/laboratório
 - [x] (10/11, prensas_4) 4 PRENSAS/pistões metálicos presos na borda (cima, baixo, esquerda, direita) que descem e
       batem; bolinha esmagada multiplica (o mais visto da referência, 9,6 mi). Movimento ritmado
       de prensa (é outro mecanismo; o "nada de vai-e-vem" vale para os giratórios).
-- [ ] 2 prensas largas horizontais (cima e baixo) fechando como um sanduíche.
+- [x] (11/11, sanduiche_prensas) 2 prensas largas horizontais (cima e baixo) fechando como um sanduíche (amp 150; com 190 abria buraco no meio).
 - [x] (10/11, rotor_cunhas) Rotor com 2 pás em CUNHA largas (tipo hélice/leque) girando no centro.
-- [ ] 6–7 cunhas metálicas fixas na borda apontando para dentro + bolinhas quicando nelas.
-- [ ] 2 hastes diagonais com placa na ponta (formato T) girando em sentidos opostos.
+- [x] (11/11, cunhas_fixas) 6 cunhas metálicas fixas na borda apontando para dentro + bastão girando no centro.
+- [x] (11/11, hastes_T) 2 hastes com placa na ponta (formato T) girando em sentidos opostos (seed_r=150 põe as sementes nos pivôs → 3 cores disputando; sem isso 1 cor dominava).
 - [ ] Bolinha-emoji ❤️ no centro + texto "Manda esse vídeo pra quem você ama ❤️" (gera envio).
 - [ ] (baixa prioridade) corrida 1 vs 1 vermelho x azul "Quem chega a 5.000 primeiro?".
 Ref. 1 (outro canal, 08/11): fundo preto, manchas de cor, roda de raios, moldura retangular
 girando, quadrado vazado girando no centro, semicírculos nas laterais, portais x5/x20.
-  Usados em 10/11: roda de raios ✅, moldura retangular ✅ (com aberturas — fechada deixava buracos fora), quadrado vazado ✅. Faltam: semicírculos laterais, portais x5/x20.
+  Usados em 10/11: roda de raios ✅, moldura retangular ✅ (com aberturas — fechada deixava buracos fora), quadrado vazado ✅. Semicírculos ✅ (11/11, semicirculos no hexágono). Falta: portais x5/x20.
   Motor novo: `mech="pieces"` em bolas.py (peças-polígono que giram e/ou batem como prensa) — use para hastes em T, cunhas fixas, semicírculos etc.
 
 ## Ideias na fila (ainda não feitas)
-- quebra_circulo (já tem config em quebra.py: quebra-quadrados dentro de círculo)
-- estrela com 5 bastões curtos (formato "star" já existe; também "pentagon" e "diamond"); losango com engrenagens; pentágono com ponteiro duplo
-- bolinha quicando dentro de quadrado/triângulo; 2 ponteiros (horas e minutos) no relógio
+- ✅ feitos 11/11: quebra_circulo, estrela com 5 bastões, bolinha quicando no quadrado, relógio com 2 ponteiros (octógono)
+- losango com engrenagens; pentágono com ponteiro duplo; quebra-quadrados em outro formato (hexágono?)
 - bastões de tamanhos/velocidades diferentes; engrenagens de 3 dentes
 - Batalha royale dos 12 signos (♈ — fazer distintivos coloridos, os emojis de signo são todos roxos)
 - Qual mês de aniversário sobrevive?
@@ -89,4 +96,5 @@ girando, quadrado vazado girando no centro, semicírculos nas laterais, portais 
 ## Cortes de stand-up (agendados à parte, 10/11)
 - O dono também posta CORTES de stand-up (em português, capa própria, vídeo limpo) nos intervalos
   dos vídeos de bolinha: **09:15, 10:45, 14:45 e 17:15**. Não agendar bolinhas nesses horários.
+- Em 11/11 os cortes estão às 09:15, 10:15, 11:15, 12:15 e 13:15 (conferido no Metricool); sem conflito com as bolinhas.
 - Já agendados: 10/11 às 19:30 e 20:15; 11/11 e 12/11 às 09:15, 10:45, 14:45, 17:15 (show "Só Cantadas").
